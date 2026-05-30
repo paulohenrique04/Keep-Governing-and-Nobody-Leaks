@@ -514,7 +514,7 @@ export default function App() {
 
         {gameState === 'START' && (
           <div style={styles.centerScreen}>
-            <h1 style={styles.glitchTitle}>PROJECT: KEEP TALK GTI</h1>
+            <h1 style={styles.glitchTitle}>PROJECT: KEEP GOVERNING AND NOBODY LEAKS</h1>
             <p style={styles.subtitle}>COBIT / ITIL Sandbox Blind Server Assessment</p>
             <button style={styles.retroButton} onClick={() => setGameState('TEAM_INPUT')}>CONFIGURAR SESSÃO DE CRISE</button>
           </div>
