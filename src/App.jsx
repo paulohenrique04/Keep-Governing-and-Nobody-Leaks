@@ -1,38 +1,302 @@
 import { useState, useEffect } from 'react';
 
-// Link fictício do Google Drive para o manual (substitua pelo seu link real se quiser)
+// Link fictício do Google Drive para o manual
 const MANUAL_DRIVE_URL = "https://drive.google.com/file/d/YOUR_MANUAL_ID/view";
 const QR_CODE_API = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(MANUAL_DRIVE_URL)}`;
 
+// ==========================================
+// BANCO DE COMPONENTES DOS 9 MÓDULOS (DINÂMICOS)
+// ==========================================
+
+// Módulo 1: Alarme Primário (DSS05 + Incidentes)
+function Modulo01({ onSolved, onStrike }) {
+  const [selected, setSelected] = useState('');
+  const handleExecute = () => {
+    if (selected === 'isolar') onSolved();
+    else onStrike("Mudança não autorizada / Falha de contenção DSS05");
+  };
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>MOD_01: ALARME PRIMÁRIO (DSS05)</div>
+      <p style={{ ...styles.moduleDesc, color: '#ff0055', animation: 'blink 1s infinite' }}>⚠️ EXTRAÇÃO DETECTADA: VAZAMENTO DE ATIVOS</p>
+      <div style={styles.radioGroup}>
+        {['Isolar Servidor', 'Aplicar Patch', 'Notificar Usuários', 'Reiniciar DB'].map((op, i) => {
+          const val = op.toLowerCase().replace(' ', '');
+          return (
+            <label key={i} style={styles.radioLabel}>
+              <input type="radio" name="mod1" onChange={() => setSelected(val)} /> {op}
+            </label>
+          );
+        })}
+      </div>
+      <button style={styles.moduleBtn} onClick={handleExecute}>Executar Medida</button>
+    </div>
+  );
+}
+
+// Módulo 2: Colapso do Suporte (APO12 + Service Desk)
+function Modulo02({ onSolved, onStrike }) {
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>MOD_02: COLAPSO DO SUPORTE (APO12)</div>
+      <p style={styles.moduleDesc}>Fila de Chamados: <span style={{ color: '#ff0055', fontWeight: 'bold' }}>99.999+</span></p>
+      <div style={styles.fakeChart}>
+        <div style={{ ...styles.chartBar, height: '40%' }}></div>
+        <div style={{ ...styles.chartBar, height: '70%' }}></div>
+        <div style={{ ...styles.chartBar, height: '100%', backgroundColor: '#ff0055' }}></div>
+      </div>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button style={{ ...styles.moduleBtn, flex: 1 }} onClick={onSolved}>Notificar Imprensa</button>
+        <button style={{ ...styles.moduleBtn, backgroundColor: '#ff0055', flex: 1 }} onClick={() => onStrike("Violação grave de Governança da LGPD!")}>Reter Comunicação</button>
+      </div>
+    </div>
+  );
+}
+
+// Módulo 3: Labirinto de Ativos (BAI09 + SACM) - RESPOSTA DINÂMICA
+function Modulo03({ onSolved, onStrike, serialNumber }) {
+  const servidores = ['SRV-Alpha', 'SRV-Beta', 'SRV-Zeta', 'SRV-Omicron', 'SRV-Gamma'];
+  
+  const handleSelect = (srv) => {
+    // LÓGICA DINÂMICA: Verifica se o último caractere do Serial é Letra ou Número
+    const lastChar = serialNumber.charAt(serialNumber.length - 1);
+    const isLetter = isNaN(parseInt(lastChar));
+    const correctServer = isLetter ? 'SRV-Zeta' : 'SRV-Beta';
+
+    if (srv === correctServer) onSolved();
+    else onStrike(`Ativo incorreto! O Servidor alvo dependia do sufixo do Serial (${lastChar}).`);
+  };
+
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>MOD_03: LABIRINTO DE ATIVOS (BAI09)</div>
+      <p style={styles.moduleDesc}>Selecione o servidor que hospeda a base protegida (Consulte Regra de Sufixo):</p>
+      <table style={styles.retroTable}>
+        <thead>
+          <tr><th>Identificador</th><th>Status</th><th>Ação</th></tr>
+        </thead>
+        <tbody>
+          {servidores.map((srv, idx) => (
+            <tr key={idx}>
+              <td>{srv}</td>
+              <td style={{ color: '#ffd700' }}>ONLINE</td>
+              <td><button style={styles.tableBtn} onClick={() => handleSelect(srv)}>Inspecionar</button></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// Módulo 4: Caça à Causa Raiz (MEA02 + Problemas)
+function Modulo04({ onSolved, onStrike }) {
+  const [input, setInput] = useState('');
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (input.toLowerCase().trim() === 'sql injection') onSolved();
+    else onStrike("Diagnóstico de causa raiz incorreto!");
+  };
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>MOD_04: CAÇA À CAUSA RAIZ (MEA02)</div>
+      <div style={styles.codeSnippet}>
+        <code>SELECT * FROM users WHERE id = '' OR 1=1;</code>
+      </div>
+      <form onSubmit={handleSubmit} style={styles.inlineForm}>
+        <input 
+          type="text" 
+          placeholder="Tipo de Ataque..." 
+          style={styles.retroInputClean} 
+          value={input} 
+          onChange={e => setInput(e.target.value)}
+        />
+        <button type="submit" style={styles.moduleBtn}>Analisar</button>
+      </form>
+    </div>
+  );
+}
+
+// Módulo 5: Purga de Credenciais (DSS06 + Acessos)
+function Modulo05({ onSolved, onStrike }) {
+  const sessoes = [
+    { ip: '192.168.1.50', hora: '10:15', local: 'Interno (Admin)', target: false },
+    { ip: '200.45.12.189', hora: '03:42', local: 'Externo (Fora do Horário)', target: true },
+    { ip: '10.0.0.12', hora: '14:20', local: 'VPN Corporativa', target: false }
+  ];
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>MOD_05: PURGA DE CREDENCIAIS (DSS06)</div>
+      <p style={styles.moduleDesc}>Desconecte sessões externas fora do horário comercial:</p>
+      {sessoes.map((s, i) => (
+        <div key={i} style={styles.sessionRow}>
+          <span>{s.ip} [{s.hora}] - {s.local}</span>
+          <button style={styles.tableBtn} onClick={() => s.target ? onSolved() : onStrike("Acesso legítimo derrubado! Operação impactada.")}>Derrubar</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Módulo 6: Sobrecarga de Tráfego (APO08 + Capacidade) - RESPOSTA DINÂMICA
+function Modulo06({ onSolved, onStrike, batteries }) {
+  const [val, setVal] = useState(50);
+  
+  const handleConfirm = () => {
+    // LÓGICA DINÂMICA: Meta depende da infraestrutura de baterias de backup detectadas
+    let targetValue = 75; 
+    if (batteries === 1) targetValue = 40;
+    if (batteries === 2) targetValue = 60;
+    if (batteries === 3) targetValue = 85;
+
+    if (parseInt(val) === targetValue) onSolved();
+    else onStrike(`Capacidade incorreta (${val}%). Para ${batteries} Bateria(s), o teto técnico diverge.`);
+  };
+
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>MOD_06: SOBRECARGA DE TRÁFEGO (APO08)</div>
+      <p style={styles.moduleDesc}>Gargalo crítico! Calcule a carga ideal conforme as Baterias de Backup:</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '15px 0' }}>
+        <input type="range" min="0" max="100" value={val} onChange={e => setVal(e.target.value)} style={{ flex: 1 }} />
+        <span style={{ fontSize: '20px', color: '#ffd700', width: '50px' }}>{val}%</span>
+      </div>
+      <button style={styles.moduleBtn} onClick={handleConfirm}>Confirmar Alocação</button>
+    </div>
+  );
+}
+
+// Módulo 7: Protocolo de Desastre (DSS04 + Continuidade)
+function Modulo07({ onSolved, onStrike }) {
+  const [sequence, setSequence] = useState([]);
+  const orderMap = { 'DB Auxiliar': 1, 'Firewall B': 2, 'Roteador 2': 3 };
+
+  const handleToggle = (key) => {
+    const nextSeq = [...sequence, orderMap[key]];
+    if (nextSeq[nextSeq.length - 1] !== nextSeq.length) {
+      setSequence([]);
+      onStrike("Sequência de contingência incorreta! Chaves desarmadas.");
+    } else {
+      setSequence(nextSeq);
+      if (nextSeq.length === 3) onSolved();
+    }
+  };
+
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>MOD_07: PROTOCOLO DE DESASTRE (DSS04)</div>
+      <p style={styles.moduleDesc}>Ative a contingência na ordem cronológica estrita do manual:</p>
+      <div style={{ display: 'flex', justifyContent: 'space-around', margin: '15px 0' }}>
+        {Object.keys(orderMap).map((name, i) => (
+          <button 
+            key={i} 
+            style={{ 
+              ...styles.tableBtn, 
+              padding: '10px', 
+              backgroundColor: sequence.includes(orderMap[name]) ? '#00ff66' : '#222',
+              color: sequence.includes(orderMap[name]) ? '#000' : '#fff'
+            }}
+            onClick={() => handleToggle(name)}
+          >
+            {name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Módulo 8: O Patch e a LGPD (MEA03 + Mudanças)
+function Modulo08({ onSolved, onStrike }) {
+  const [pin, setPin] = useState('');
+  const handleNum = (num) => {
+    const current = pin + num;
+    if (current.length === 4) {
+      if (current === '2623') onSolved();
+      else {
+        setPin('');
+        onStrike("Código PIN de auditoria rejeitado.");
+      }
+    } else {
+      setPin(current);
+    }
+  };
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>MOD_08: O PATCH E A LGPD (MEA03)</div>
+      <p style={styles.moduleDesc}>Digite o PIN de Autorização de Mudança (4 dígitos):</p>
+      <div style={styles.keypadContainer}>
+        <div style={styles.keypadDisplay}>{pin.padEnd(4, '_')}</div>
+        <div style={styles.keypadGrid}>
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(n => (
+            <button key={n} style={styles.keyBtn} onClick={() => handleNum(n)}>{n}</button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Módulo 9: O Relatório da Diretoria (MEA01 + Melhoria)
+function Modulo09({ onSolved, onStrike }) {
+  const [checked, setChecked] = useState({ seguranca: false, custos: false, marketing: false });
+  const handleCheck = () => {
+    if (checked.seguranca && checked.custos && !checked.marketing) onSolved();
+    else onStrike("Transparência corporativa falhou! Métricas inadequadas enviadas.");
+  };
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>MOD_09: RELATÓRIO EXECUTIVO (MEA01)</div>
+      <p style={styles.moduleDesc}>Selecione apenas as métricas exigidas pela diretoria:</p>
+      <div style={styles.radioGroup}>
+        <label style={styles.radioLabel}>
+          <input type="checkbox" onChange={e => setChecked({...checked, seguranca: e.target.checked})} /> Contas Comprometidas (Segurança)
+        </label>
+        <label style={styles.radioLabel}>
+          <input type="checkbox" onChange={e => setChecked({...checked, custos: e.target.checked})} /> Custo do Servidor (Custos)
+        </label>
+        <label style={styles.radioLabel}>
+          <input type="checkbox" onChange={e => setChecked({...checked, marketing: e.target.checked})} /> Pico de Jogadores (Marketing)
+        </label>
+      </div>
+      <button style={styles.moduleBtn} onClick={handleCheck}>Enviar Relatório</button>
+    </div>
+  );
+}
+
+// ==========================================
+// COMPONENTE PRINCIPAL DO JOGO (GAME CORE)
+// ==========================================
+
 export default function App() {
-  // Estados do Fluxo do Jogo
-  const [gameState, setGameState] = useState('START'); // START, TEAM_INPUT, MANUAL_QR, PLAYING, GAME_OVER
+  const [gameState, setGameState] = useState('START');
   const [teamName, setTeamName] = useState('');
-  const [gameResult, setGameResult] = useState(null); // 'WIN' ou 'LOSE'
-  const [timeRemaining, setTimeRemaining] = useState(300); // 5 minutos de pânico
+  const [gameResult, setGameResult] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState(300);
   const [finalTime, setFinalTime] = useState(0);
 
-  // Estados dos Módulos (Painel do Operador - ITIL)
-  // Módulo 1: DSS05 + Gestão de Incidentes (Vazamento de dados ativos)
-  const [m1Status, setM1Status] = useState('PENDING'); // PENDING, SOLVED
-  const [m1Action, setM1Action] = useState(null); // 'ISOLAR' ou 'PATCH'
-  const [m1Alert, setM1Alert] = useState('');
+  // Atributos Randômicos da Infraestrutura (VITAL para engenharia reversa do manual)
+  const [serialNumber, setSerialNumber] = useState('');
+  const [batteriesCount, setBatteriesCount] = useState(1);
 
-  // Módulo 2: APO12 + Service Desk (Colapso de Chamados / Dados de Crianças)
-  const [m2Status, setM2Status] = useState('PENDING');
-  const [m2Tickets, setM2Tickets] = useState(4850);
-  const [m2Action, setM2Action] = useState(null); // 'OCULTAR' ou 'NOTIFICAR'
-  const [m2Alert, setM2Alert] = useState('');
+  // Estados dos Módulos e do Ecossistema de Erros
+  const [activeModuleIds, setActiveModuleIds] = useState([]);
+  const [solvedModules, setSolvedModules] = useState([]);
+  const [strikes, setStrikes] = useState(0); 
+  const [strikeAlert, setStrikeAlert] = useState('');
 
-  // Módulo 3: MEA03 + Gestão de Mudanças (O PIN de Conformidade da LGPD)
-  const [m3Status, setM3Status] = useState('PENDING');
-  const [m3PinInput, setM3PinInput] = useState('');
-  const [m3Alert, setM3Alert] = useState('');
+  // Define a velocidade do relógio com base nos erros (Mecânica Hardcore)
+  const getTimeSpeedMultiplier = () => {
+    if (strikes === 1) return 1.35; // 35% mais rápido
+    if (strikes === 2) return 1.75; // 75% mais rápido
+    return 1.0;
+  };
 
-  // Cronômetro
+  // Relógio com multiplicador adaptável de ticks dinâmicos
   useEffect(() => {
     let timer;
     if (gameState === 'PLAYING' && timeRemaining > 0) {
+      const currentSpeed = 1000 / getTimeSpeedMultiplier();
       timer = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
@@ -42,45 +306,41 @@ export default function App() {
           }
           return prev - 1;
         });
-      }, 1000);
+      }, currentSpeed);
     }
     return () => clearInterval(timer);
-  }, [gameState, timeRemaining]);
+  }, [gameState, timeRemaining, strikes]);
 
-  // Efeito caótico para simular chamados aumentando no Módulo 2
-  useEffect(() => {
-    let ticketInterval;
-    if (gameState === 'PLAYING' && m2Status === 'PENDING') {
-      ticketInterval = setInterval(() => {
-        setM2Tickets((prev) => prev + Math.floor(Math.random() * 45) + 10);
-      }, 800);
-    }
-    return () => clearInterval(ticketInterval);
-  }, [gameState, m2Status]);
+  // Sorteador de Módulos e Geração Dinâmica de Variáveis de Infraestrutura
+  const generateCrisisEnvironment = () => {
+    // 1. Sorteia os 3 módulos únicos
+    const totalModules = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const shuffled = totalModules.sort(() => 0.5 - Math.random());
+    setActiveModuleIds(shuffled.slice(0, 3));
 
-  // Auxiliar de formatação do tempo
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    // 2. Cria Serial Number aleatório (Metade termina em Letra, metade em Número)
+    const midDigits = Math.floor(1000 + Math.random() * 9000);
+    const suffixes = ['X', 'Z', 'N', '4', '7', '2'];
+    const selectedSuffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+    setSerialNumber(`GTI-${midDigits}-${selectedSuffix}`);
+
+    // 3. Sorteia Baterias de Backup (1 a 3)
+    setBatteriesCount(Math.floor(Math.random() * 3) + 1);
   };
 
-  const startGameFlow = () => setGameState('TEAM_INPUT');
-  
   const handleTeamSubmit = (e) => {
     e.preventDefault();
-    if (teamName.trim()) setGameState('MANUAL_QR');
+    if (teamName.trim()) {
+      generateCrisisEnvironment();
+      setGameState('MANUAL_QR');
+    }
   };
 
   const startBomb = () => {
     setTimeRemaining(300);
-    setM1Status('PENDING');
-    setM2Status('PENDING');
-    setM3Status('PENDING');
-    setM1Alert('');
-    setM2Alert('');
-    setM3Alert('');
-    setM3PinInput('');
+    setSolvedModules([]);
+    setStrikes(0);
+    setStrikeAlert('');
     setGameState('PLAYING');
   };
 
@@ -90,87 +350,83 @@ export default function App() {
     setGameState('GAME_OVER');
   };
 
-  // Checagem de vitória geral
-  useEffect(() => {
-    if (gameState === 'PLAYING' && m1Status === 'SOLVED' && m2Status === 'SOLVED' && m3Status === 'SOLVED') {
-      endGame('WIN');
-    }
-  }, [m1Status, m2Status, m3Status, gameState]);
-
-  // Lógica Módulo 1: DSS05 (Contenção precede mudança)
-  const handleM1Execute = () => {
-    if (!m1Action) {
-      setM1Alert("ERRO: NENHUMA AÇÃO SELECIONADA.");
-      return;
-    }
-    if (m1Action === 'PATCH') {
-      // Falhou! O ITIL tentou aplicar o patch direto sem a regra de governança do COBIT
-      setM1Alert("🔥 CRASH! Você aplicou o patch mas o invasor usou a mesma porta para vazar mais dados! COBIT DSS05 exige contenção primeiro.");
-      setTimeRemaining((prev) => Math.max(0, prev - 45)); // Penalidade de tempo
-    } else if (m1Action === 'ISOLAR') {
-      setM1Status('SOLVED');
-      setM1Alert("✓ SUCESSO: Servidores isolados conforme COBIT DSS05. Incidente contido.");
+  const handleModuleSolved = (id) => {
+    if (!solvedModules.includes(id)) {
+      const updated = [...solvedModules, id];
+      setSolvedModules(updated);
+      setStrikeAlert(`✓ Módulo 0${id} neutralizado com sucesso.`);
+      if (updated.length === 3) {
+        endGame('WIN');
+      }
     }
   };
 
-  // Lógica Módulo 2: APO12 (Transparência vs Multa LGPD)
-  const handleM2Execute = () => {
-    if (!m2Action) {
-      setM2Alert("ERRO: NENHUMA AÇÃO SELECIONADA.");
-      return;
-    }
-    if (m2Action === 'OCULTAR') {
-      setM2Alert("🚨 MULTA MÁXIMA DA LGPD! Tentar omitir vazamento de dados de menores violou o APO12 do COBIT.");
-      setTimeRemaining((prev) => Math.max(0, prev - 60)); // Penalidade pesada
-    } else if (m2Action === 'NOTIFICAR') {
-      setM2Status('SOLVED');
-      setM2Alert("✓ SUCESSO: Service Desk instruído a notificar ANPD e usuários. Risco gerenciado.");
-    }
-  };
-
-  // Lógica Módulo 3: MEA03 (PIN de validação de Conformidade)
-  // No seu manual do comitê, você pode inventar uma regra matemática. Ex: "O PIN é a soma do ano da LGPD (2018) com o número do módulo MEA (03) = 2021"
-  const handleM3Verify = (e) => {
-    e.preventDefault();
-    if (m3PinInput === '2021') {
-      setM3Status('SOLVED');
-      setM3Alert("✓ SUCESSO: PIN de conformidade MEA03 aceito. Mudança autorizada na produção!");
+  const handleModuleStrike = (msg) => {
+    const nextStrikes = strikes + 1;
+    setStrikes(nextStrikes);
+    
+    if (nextStrikes >= 3) {
+      setStrikeAlert("🚨 LIMITE DE INFRAÇÕES EXCEDIDO! EXPLOSÃO IMEDIATA!");
+      endGame('LOSE');
     } else {
-      setM3Alert("❌ PIN INVÁLIDO: Auditoria do COBIT rejeitou a mudança.");
-      setTimeRemaining((prev) => Math.max(0, prev - 30));
+      setStrikeAlert(`🚨 STRIKE ${nextStrikes}/3: ${msg} [Relógio Acelerado!]`);
+      setTimeRemaining((prev) => Math.max(0, prev - 30)); // Remove 30 segundos punitivos imediatos
     }
+  };
+
+  const renderModule = (id) => {
+    if (solvedModules.includes(id)) {
+      return (
+        <div style={{ ...styles.moduleCard, borderColor: '#00ff66' }} key={id}>
+          <div style={styles.moduleHeader}>MÓDULO 0{id} <span style={styles.ledGreen}></span></div>
+          <p style={{ color: '#00ff66', textAlign: 'center', padding: '20px' }}>✓ INTEGRALIZADO EM COMPLIANCE</p>
+        </div>
+      );
+    }
+
+    switch(id) {
+      case 1: return <Modulo01 key={id} onSolved={() => handleModuleSolved(1)} onStrike={handleModuleStrike} />;
+      case 2: return <Modulo02 key={id} onSolved={() => handleModuleSolved(2)} onStrike={handleModuleStrike} />;
+      case 3: return <Modulo03 key={id} onSolved={() => handleModuleSolved(3)} onStrike={handleModuleStrike} serialNumber={serialNumber} />;
+      case 4: return <Modulo04 key={id} onSolved={() => handleModuleSolved(4)} onStrike={handleModuleStrike} />;
+      case 5: return <Modulo05 key={id} onSolved={() => handleModuleSolved(5)} onStrike={handleModuleStrike} />;
+      case 6: return <Modulo06 key={id} onSolved={() => handleModuleSolved(6)} onStrike={handleModuleStrike} batteries={batteriesCount} />;
+      case 7: return <Modulo07 key={id} onSolved={() => handleModuleSolved(7)} onStrike={handleModuleStrike} />;
+      case 8: return <Modulo08 key={id} onSolved={() => handleModuleSolved(8)} onStrike={handleModuleStrike} />;
+      case 9: return <Modulo09 key={id} onSolved={() => handleModuleSolved(9)} onStrike={handleModuleStrike} />;
+      default: return null;
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
     <div style={styles.bodyContainer}>
       <div style={styles.retroTerminal}>
-        
-        {/* HEADER CORPORATIVO RETRÔ */}
         <header style={styles.terminalHeader}>
-          <div>SISTEMA CRÍTICO DE MITIGAÇÃO DE CRISE v4.02</div>
-          <div>EPIC_GAMES_INC // SECURE_LINE</div>
+          <div>SISTEMA CRÍTICO DE GOVERNANÇA GTI v6.0-HARDCORE</div>
+          <div>EPIC_SANDBOX // MULTI_STRIKE_ENABLED</div>
         </header>
 
-        {/* 1. TELA INICIAL */}
         {gameState === 'START' && (
           <div style={styles.centerScreen}>
-            <h1 style={styles.glitchTitle}>PROJECT: KEEP</h1>
+            <h1 style={styles.glitchTitle}>PROJECT: KEEP TALK GTI</h1>
             <p style={styles.subtitle}>COBIT & ITIL Crisis Simulation Sandbox</p>
-            <div style={styles.warningBox}>
-              [ALERTA]: INVASÃO DETECTADA NOS SERVIDORES DA EPIC GAMES. DADOS DE USUÁRIOS EXPOSTOS.
-            </div>
-            <button style={styles.retroButton} onClick={startGameFlow}>
+            <button style={styles.retroButton} onClick={() => setGameState('TEAM_INPUT')}>
               INICIAR PROTOCOLO DE CRISE (JOGAR)
             </button>
           </div>
         )}
 
-        {/* 2. ENTRADA DA DUPLA */}
         {gameState === 'TEAM_INPUT' && (
           <div style={styles.centerScreen}>
             <h2>CADASTRO DE OPERADORES DE TI</h2>
             <form onSubmit={handleTeamSubmit} style={styles.form}>
-              <label style={styles.label}>IDENTIFICAÇÃO DA DUPLA / EQUIPE:</label>
+              <label style={styles.label}>IDENTIFICAÇÃO DA EQUIPE:</label>
               <input 
                 type="text" 
                 style={styles.retroInput} 
@@ -179,473 +435,136 @@ export default function App() {
                 placeholder="Ex: GRUPO_05_GTI"
                 required
               />
-              <button type="submit" style={styles.retroButton}>GERAR MANUAL DA FASE</button>
+              <button type="submit" style={styles.retroButton}>GERAR ELEMENTOS RANDÔMICOS</button>
             </form>
           </div>
         )}
 
-        {/* 3. TELA DO QR CODE DO MANUAL */}
         {gameState === 'MANUAL_QR' && (
           <div style={styles.centerScreen}>
-            <h2>MANUAL DE GOVERNANÇA LIBERADO (COBIT)</h2>
+            <h2>MANUAL DE GOVERNANÇA LIBERADO (COBIT/ITIL)</h2>
             <p style={{ color: '#ffd700', marginBottom: '20px' }}>
-              O Comitê de Governança deve escanear o QR Code abaixo para acessar o Manual de Crise.
-              O Operador do Painel NÃO deve olhar o manual.
+              O Comitê de Governança deve escanear o QR Code para ler as regras de contingência.
             </p>
-            
             <div style={styles.qrContainer}>
-              <img src={QR_CODE_API} alt="QR Code para o Manual" style={styles.qrCode} />
-              <div style={styles.qrScanLine}></div>
+              <img src={QR_CODE_API} alt="QR Code" style={styles.qrCode} />
             </div>
-
-            <p style={styles.codeText}>OPERADOR: {teamName.toUpperCase()}</p>
+            <p style={styles.codeText}>Módulos Armados nesta rodada: {activeModuleIds.map(id => `[Mód 0${id}] `)}</p>
             <button style={styles.retroButton} onClick={startBomb}>
               ENTENDIDO. ENTRAR NO PAINEL DA BOMBA!
             </button>
           </div>
         )}
 
-        {/* 4. O JOGO RODANDO (A BOMBA) */}
         {gameState === 'PLAYING' && (
           <div style={styles.gameGrid}>
-            
-            {/* SIDEBAR DO CRONÔMETRO */}
             <div style={styles.sidebar}>
               <div style={styles.panelTitle}>STATUS DA CRISE</div>
               <div style={{ ...styles.countdown, color: timeRemaining < 60 ? '#ff0055' : '#00ff66' }}>
                 {formatTime(timeRemaining)}
               </div>
+              
+              {/* Painel de Exibição de Erros Dinâmicos (Strikes) */}
+              <div style={styles.strikeContainer}>
+                <span style={{ color: '#aaa', fontSize: '12px' }}>STRIKES: </span>
+                <span style={{ color: strikes > 0 ? '#ff0055' : '#333', fontSize: '22px', fontWeight: 'bold' }}>X </span>
+                <span style={{ color: strikes > 1 ? '#ff0055' : '#333', fontSize: '22px', fontWeight: 'bold' }}>X </span>
+                <span style={{ color: strikes > 2 ? '#ff0055' : '#333', fontSize: '22px', fontWeight: 'bold' }}>X</span>
+              </div>
+
+              {/* Variáveis Físicas Fundamentais da Rodada */}
+              <div style={styles.hardwarePanel}>
+                <div style={styles.hardwareHeader}>HARDWARE ATIVO</div>
+                <p><strong>SERIAL NO:</strong> <span style={{color: '#ffd700'}}>{serialNumber}</span></p>
+                <p><strong>BATERIAS BACKUP:</strong> <span style={{color: '#ffd700'}}>{batteriesCount} UN</span></p>
+              </div>
+
               <div style={styles.metaData}>
-                <p><strong>ALVO:</strong> Epic Games</p>
                 <p><strong>EQUIPE:</strong> {teamName}</p>
-                <p><strong>AMBIENTE:</strong> PRODUÇÃO</p>
+                <p><strong>CONCLUÍDOS:</strong> {solvedModules.length} / 3</p>
+                {getTimeSpeedMultiplier() > 1 && (
+                  <p style={{color: '#ff0055', fontWeight: 'bold'}}>⚠️ VELOCIDADE: {getTimeSpeedMultiplier()}x</p>
+                )}
               </div>
-              <div style={styles.systemLogs}>
-                <div style={{color: '#ff0055'}}>&gt; [LOG] Vazamento ativo.</div>
-                <div style={{color: '#ffd700'}}>&gt; [LOG] Governança exige compliance.</div>
-                {m1Status === 'SOLVED' && <div style={{color: '#00ff66'}}>&gt; [LOG] DSS05 Concluído.</div>}
-                {m2Status === 'SOLVED' && <div style={{color: '#00ff66'}}>&gt; [LOG] APO12 Concluído.</div>}
-              </div>
+              {strikeAlert && <div style={styles.alertText}>{strikeAlert}</div>}
             </div>
 
-            {/* PAINEL DOS MÓDULOS DE TI (ITIL) */}
             <div style={styles.modulesContainer}>
-              
-              {/* MÓDULO 1 */}
-              <div style={{...styles.moduleCard, borderColor: m1Status === 'SOLVED' ? '#00ff66' : '#ff0055'}}>
-                <div style={styles.moduleHeader}>
-                  <span>MOD_01: GESTÃO DE INCIDENTES (ITIL)</span>
-                  <span style={m1Status === 'SOLVED' ? styles.ledGreen : styles.ledRed}></span>
-                </div>
-                <p style={styles.moduleDesc}>Sintoma: Invasor extraindo banco de dados de contas ativas agora.</p>
-                
-                <div style={styles.radioGroup}>
-                  <label style={styles.radioLabel}>
-                    <input 
-                      type="radio" 
-                      name="m1" 
-                      disabled={m1Status === 'SOLVED'}
-                      onChange={() => setM1Action('PATCH')} 
-                    /> Deploy Imediato de Hot-Fix/Patch no Servidor.
-                  </label>
-                  <label style={styles.radioLabel}>
-                    <input 
-                      type="radio" 
-                      name="m1" 
-                      disabled={m1Status === 'SOLVED'}
-                      onChange={() => setM1Action('ISOLAR')} 
-                    /> Isolar o segmento de rede afetado e derrubar a rota externa.
-                  </label>
-                </div>
-
-                <button 
-                  style={m1Status === 'SOLVED' ? styles.disabledBtn : styles.moduleBtn} 
-                  disabled={m1Status === 'SOLVED'}
-                  onClick={handleM1Execute}
-                >
-                  EXECUTAR AÇÃO TÉCNICA
-                </button>
-                {m1Alert && <p style={styles.alertText}>{m1Alert}</p>}
-              </div>
-
-              {/* MÓDULO 2 */}
-              <div style={{...styles.moduleCard, borderColor: m2Status === 'SOLVED' ? '#00ff66' : '#ff0055'}}>
-                <div style={styles.moduleHeader}>
-                  <span>MOD_02: SERVICE DESK & RISCO (ITIL/COBIT)</span>
-                  <span style={m2Status === 'SOLVED' ? styles.ledGreen : styles.ledRed}></span>
-                </div>
-                <p style={styles.moduleDesc}>Crise: {m2Tickets} chamados pendentes. Suspeita de vazamento de dados de crianças (Forte impacto LGPD).</p>
-                
-                <div style={styles.radioGroup}>
-                  <label style={styles.radioLabel}>
-                    <input 
-                      type="radio" 
-                      name="m2" 
-                      disabled={m2Status === 'SOLVED'}
-                      onChange={() => setM2Action('OCULTAR')} 
-                    /> Forçar modo privado no painel para diminuir chamados e reter informação.
-                  </label>
-                  <label style={styles.radioLabel}>
-                    <input 
-                      type="radio" 
-                      name="m2" 
-                      disabled={m2Status === 'SOLVED'}
-                      onChange={() => setM2Action('NOTIFICAR')} 
-                    /> Iniciar Transparência: Disparar comunicados oficiais de risco aos responsáveis.
-                  </label>
-                </div>
-
-                <button 
-                  style={m2Status === 'SOLVED' ? styles.disabledBtn : styles.moduleBtn} 
-                  disabled={m2Status === 'SOLVED'}
-                  onClick={handleM2Execute}
-                >
-                  APLICAR DIRETRIZ
-                </button>
-                {m2Alert && <p style={styles.alertText}>{m2Alert}</p>}
-              </div>
-
-              {/* MÓDULO 3 */}
-              <div style={{...styles.moduleCard, borderColor: m3Status === 'SOLVED' ? '#00ff66' : '#ff0055'}}>
-                <div style={styles.moduleHeader}>
-                  <span>MOD_03: GESTÃO DE MUDANÇAS & COMPLIANCE</span>
-                  <span style={m3Status === 'SOLVED' ? styles.ledGreen : styles.ledRed}></span>
-                </div>
-                <p style={styles.moduleDesc}>Validação: O patch final está compilado pelo ITIL. Insira o PIN de validação do MEA03 presente no Manual do COBIT para autorizar a mudança em Produção.</p>
-                
-                <form onSubmit={m3Status === 'SOLVED' ? (e)=>e.preventDefault() : handleM3Verify} style={styles.inlineForm}>
-                  <input 
-                    type="text" 
-                    placeholder="PIN COBIT" 
-                    style={styles.pinInput}
-                    value={m3PinInput}
-                    disabled={m3Status === 'SOLVED'}
-                    onChange={(e) => setM3PinInput(e.target.value)}
-                  />
-                  <button 
-                    type="submit" 
-                    style={m3Status === 'SOLVED' ? styles.disabledBtn : styles.moduleBtn}
-                    disabled={m3Status === 'SOLVED'}
-                  >
-                    AUTORIZAR MUDANÇA
-                  </button>
-                </form>
-                {m3Alert && <p style={styles.alertText}>{m3Alert}</p>}
-              </div>
-
+              {activeModuleIds.map(id => renderModule(id))}
             </div>
           </div>
         )}
 
-        {/* 5. TELA DE FIM DE JOGO */}
         {gameState === 'GAME_OVER' && (
           <div style={styles.centerScreen}>
             {gameResult === 'WIN' ? (
               <>
                 <h1 style={{...styles.glitchTitle, color: '#00ff66'}}>CRISE MITIGADA!</h1>
-                <p style={styles.subtitle}>Governança e Gestão agiram em perfeita sincronia.</p>
                 <div style={styles.scoreBox}>
                   <p><strong>EQUIPE:</strong> {teamName.toUpperCase()}</p>
                   <p><strong>TEMPO DE RESPOSTA:</strong> {formatTime(finalTime)}</p>
-                  <p><strong>RESULTADO:</strong> SUCESSO COMPATÍVEL COM LGPD</p>
+                  <p><strong>POLÍTICA DE ERROS:</strong> {strikes} Strike(s) cometidos</p>
                 </div>
               </>
             ) : (
               <>
-                <h1 style={{...styles.glitchTitle, color: '#ff0055'}}>SISTEMA CORROMPIDO!</h1>
-                <p style={styles.subtitle}>A infraestrutura colapsou ou a ANPD aplicou sanções fatais.</p>
-                <div style={{...styles.scoreBox, borderColor: '#ff0055'}}>
-                  <p><strong>EQUIPE:</strong> {teamName.toUpperCase()}</p>
-                  <p><strong>STATUS:</strong> FALÊNCIA OPERACIONAL / MULTA LGPD</p>
-                </div>
+                <h1 style={{...styles.glitchTitle, color: '#ff0055'}}>SISTEMA EXPLODIDO!</h1>
+                <p style={styles.subtitle}>A infraestrutura colapsou ou a ANPD aplicou sanções de encerramento compulsório.</p>
               </>
             )}
-            <button style={styles.retroButton} onClick={() => setGameState('START')}>
-              REINICIAR SIMULAÇÃO
-            </button>
+            <button style={styles.retroButton} onClick={() => setGameState('START')}>REINICIAR</button>
           </div>
         )}
-
       </div>
     </div>
   );
 }
 
-// ARQUITETURA CSS MAXIMALISTA RETRÔ-CORPORATIVA (CSS-in-JS inline para portabilidade rápida)
+// ==========================================
+// FOLHA DE ESTILOS MAXIMALISTA RETRÔ
+// ==========================================
 const styles = {
-  bodyContainer: {
-    backgroundColor: '#0a0a0a',
-    color: '#00ff66',
-    fontFamily: '"Courier New", Courier, monospace',
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '20px',
-    boxSizing: 'border-box',
-  },
-  retroTerminal: {
-    width: '100%',
-    maxWidth: '1200px',
-    backgroundColor: '#121212',
-    border: '4px solid #333',
-    boxShadow: '0 0 30px rgba(0, 255, 102, 0.15), inset 0 0 20px rgba(0,0,0,0.9)',
-    padding: '20px',
-    position: 'relative',
-  },
-  terminalHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    borderBottom: '2px dashed #333',
-    paddingBottom: '10px',
-    marginBottom: '20px',
-    fontSize: '12px',
-    color: '#888',
-  },
-  centerScreen: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    textAlign: 'center',
-    padding: '40px 10px',
-  },
-  glitchTitle: {
-    fontSize: '3rem',
-    fontWeight: 'bold',
-    letterSpacing: '5px',
-    margin: '0 0 10px 0',
-    color: '#00ff66',
-    textShadow: '3px 3px #ff0055',
-  },
-  subtitle: {
-    fontSize: '16px',
-    color: '#ffd700',
-    marginBottom: '30px',
-    textTransform: 'uppercase',
-  },
-  warningBox: {
-    border: '2px solid #ff0055',
-    backgroundColor: 'rgba(255,0,85,0.1)',
-    color: '#ff0055',
-    padding: '15px',
-    marginBottom: '30px',
-    fontWeight: 'bold',
-    maxWidth: '600px',
-  },
-  retroButton: {
-    backgroundColor: '#00ff66',
-    color: '#000',
-    border: 'none',
-    padding: '15px 30px',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    fontFamily: '"Courier New", Courier, monospace',
-    boxShadow: '4px 4px 0px #ffd700',
-    textTransform: 'uppercase',
-    transition: 'all 0.2s',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    width: '100%',
-    maxWidth: '400px',
-  },
-  label: {
-    marginBottom: '10px',
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  retroInput: {
-    width: '100%',
-    backgroundColor: '#000',
-    border: '2px solid #ffd700',
-    color: '#ffd700',
-    padding: '12px',
-    fontFamily: '"Courier New", Courier, monospace',
-    fontSize: '16px',
-    marginBottom: '20px',
-    boxSizing: 'border-box',
-  },
-  qrContainer: {
-    position: 'relative',
-    backgroundColor: '#fff',
-    padding: '15px',
-    border: '4px solid #ffd700',
-    marginBottom: '20px',
-    display: 'inline-block',
-  },
-  qrCode: {
-    display: 'block',
-  },
-  qrScanLine: {
-    position: 'absolute',
-    top: '0',
-    left: '0',
-    width: '100%',
-    height: '4px',
-    backgroundColor: '#ff0055',
-    animation: 'scan 2s linear infinite',
-  },
-  codeText: {
-    color: '#888',
-    marginBottom: '30px',
-  },
-  gameGrid: {
-    display: 'grid',
-    gridTemplateColumns: '300px 1fr',
-    gap: '20px',
-  },
-  sidebar: {
-    backgroundColor: '#000',
-    border: '2px solid #333',
-    padding: '15px',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  panelTitle: {
-    color: '#000',
-    backgroundColor: '#ffd700',
-    fontWeight: 'bold',
-    padding: '5px',
-    textAlign: 'center',
-    fontSize: '14px',
-    marginBottom: '15px',
-  },
-  countdown: {
-    fontSize: '3.5rem',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontFamily: 'monospace',
-    margin: '10px 0',
-    textShadow: '0 0 10px currentColor',
-  },
-  metaData: {
-    borderTop: '1px solid #333',
-    paddingTop: '10px',
-    fontSize: '12px',
-    color: '#aaa',
-    lineHeight: '1.6',
-  },
-  systemLogs: {
-    marginTop: 'auto',
-    backgroundColor: '#050505',
-    border: '1px solid #222',
-    padding: '10px',
-    height: '120px',
-    fontSize: '11px',
-    overflowY: 'hidden',
-    fontFamily: 'monospace',
-  },
-  modulesContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-  },
-  moduleCard: {
-    backgroundColor: '#151515',
-    border: '2px solid',
-    padding: '15px',
-    position: 'relative',
-    boxShadow: 'inset 0 0 10px rgba(0,0,0,0.8)',
-  },
-  moduleHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    fontWeight: 'bold',
-    fontSize: '14px',
-    borderBottom: '1px solid #333',
-    paddingBottom: '5px',
-    marginBottom: '10px',
-    color: '#fff',
-  },
-  ledRed: {
-    width: '12px',
-    height: '12px',
-    backgroundColor: '#ff0055',
-    borderRadius: '50%',
-    boxShadow: '0 0 8px #ff0055',
-  },
-  ledGreen: {
-    width: '12px',
-    height: '12px',
-    backgroundColor: '#00ff66',
-    borderRadius: '50%',
-    boxShadow: '0 0 8px #00ff66',
-  },
-  moduleDesc: {
-    fontSize: '13px',
-    color: '#ccc',
-    marginBottom: '15px',
-    lineHeight: '1.4',
-  },
-  radioGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    marginBottom: '15px',
-  },
-  radioLabel: {
-    fontSize: '13px',
-    color: '#ffd700',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  moduleBtn: {
-    backgroundColor: '#ffd700',
-    color: '#000',
-    border: 'none',
-    padding: '10px 20px',
-    fontFamily: '"Courier New", Courier, monospace',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    textTransform: 'uppercase',
-  },
-  disabledBtn: {
-    backgroundColor: '#333',
-    color: '#666',
-    border: 'none',
-    padding: '10px 20px',
-    fontFamily: '"Courier New", Courier, monospace',
-    fontWeight: 'bold',
-    cursor: 'not-allowed',
-    textTransform: 'uppercase',
-  },
-  alertText: {
-    marginTop: '10px',
-    fontSize: '12px',
-    lineHeight: '1.4',
-    padding: '5px',
-    backgroundColor: '#000',
-    borderLeft: '3px solid #ff0055',
-  },
-  inlineForm: {
-    display: 'flex',
-    gap: '10px',
-    alignItems: 'center',
-  },
-  pinInput: {
-    backgroundColor: '#000',
-    border: '2px solid #ff0055',
-    color: '#ff0055',
-    padding: '8px',
-    fontSize: '14px',
-    fontFamily: '"Courier New", Courier, monospace',
-    width: '120px',
-    textAlign: 'center',
-  },
-  scoreBox: {
-    border: '2px dashed #00ff66',
-    padding: '20px',
-    backgroundColor: '#000',
-    textAlign: 'left',
-    minWidth: '300px',
-    marginBottom: '30px',
-    lineHeight: '1.8',
-  }
+  bodyContainer: { backgroundColor: '#0a0a0a', color: '#00ff66', fontFamily: 'monospace', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
+  retroTerminal: { width: '100%', maxWidth: '1200px', backgroundColor: '#121212', border: '4px solid #333', padding: '20px', position: 'relative' },
+  terminalHeader: { display: 'flex', justifyContent: 'space-between', borderBottom: '2px dashed #333', paddingBottom: '10px', marginBottom: '20px', fontSize: '12px', color: '#888' },
+  centerScreen: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '40px 10px' },
+  glitchTitle: { fontSize: '2.5rem', fontWeight: 'bold', margin: '0 0 10px 0', textShadow: '3px 3px #ff0055' },
+  subtitle: { fontSize: '14px', color: '#ffd700', marginBottom: '30px' },
+  retroButton: { backgroundColor: '#00ff66', color: '#000', border: 'none', padding: '15px 30px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '4px 4px 0px #ffd700' },
+  form: { display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '400px', gap: '10px' },
+  label: { color: '#fff', textAlign: 'left' },
+  retroInput: { backgroundColor: '#000', border: '2px solid #ffd700', color: '#ffd700', padding: '12px', fontFamily: 'monospace' },
+  retroInputClean: { backgroundColor: '#000', border: '1px solid #00ff66', color: '#00ff66', padding: '8px', fontFamily: 'monospace', flex: 1 },
+  qrContainer: { backgroundColor: '#fff', padding: '10px', border: '4px solid #ffd700', marginBottom: '20px' },
+  qrCode: { display: 'block' },
+  codeText: { color: '#ffd700', margin: '20px 0' },
+  gameGrid: { display: 'grid', gridTemplateColumns: '300px 1fr', gap: '20px' },
+  sidebar: { backgroundColor: '#000', border: '2px solid #333', padding: '15px' },
+  panelTitle: { backgroundColor: '#ffd700', color: '#000', fontWeight: 'bold', padding: '5px', textAlign: 'center' },
+  countdown: { fontSize: '3rem', fontWeight: 'bold', textAlign: 'center', marginTop: '10px', marginBottom: '5px' },
+  strikeContainer: { textAlign: 'center', padding: '5px', borderBottom: '1px solid #222', marginBottom: '15px' },
+  hardwarePanel: { backgroundColor: '#111', border: '1px dashed #ffd700', padding: '10px', marginBottom: '15px', fontSize: '12px' },
+  hardwareHeader: { color: '#fff', fontWeight: 'bold', borderBottom: '1px solid #333', paddingBottom: '3px', marginBottom: '5px' },
+  metaData: { borderTop: '1px solid #333', paddingTop: '10px', fontSize: '12px', color: '#aaa' },
+  modulesContainer: { display: 'flex', flexDirection: 'column', gap: '20px' },
+  moduleCard: { backgroundColor: '#151515', border: '2px solid #ff0055', padding: '15px' },
+  moduleHeader: { display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderBottom: '1px solid #333', paddingBottom: '5px', marginBottom: '10px' },
+  moduleDesc: { fontSize: '13px', color: '#ccc', marginBottom: '15px' },
+  radioGroup: { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '15px' },
+  radioLabel: { color: '#ffd700', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' },
+  moduleBtn: { backgroundColor: '#ffd700', color: '#000', border: 'none', padding: '10px 20px', fontWeight: 'bold', cursor: 'pointer' },
+  alertText: { marginTop: '20px', padding: '10px', backgroundColor: '#220005', borderLeft: '3px solid #ff0055', fontSize: '12px' },
+  ledGreen: { width: '12px', height: '12px', backgroundColor: '#00ff66', borderRadius: '50%', display: 'inline-block' },
+  fakeChart: { display: 'flex', alignItems: 'flex-end', gap: '10px', height: '60px', backgroundColor: '#000', padding: '10px', marginBottom: '15px' },
+  chartBar: { width: '30%', backgroundColor: '#ffd700', transition: 'height 0.3s' },
+  retroTable: { width: '100%', borderCollapse: 'collapse', marginBottom: '15px', fontSize: '12px' },
+  tableBtn: { backgroundColor: '#333', color: '#00ff66', border: '1px solid #00ff66', padding: '2px 8px', cursor: 'pointer' },
+  codeSnippet: { backgroundColor: '#000', padding: '10px', border: '1px dashed #ffd700', color: '#00ff66', marginBottom: '15px', fontSize: '12px' },
+  inlineForm: { display: 'flex', gap: '10px' },
+  sessionRow: { display: 'flex', justifyContent: 'space-between', padding: '5px', backgroundColor: '#000', marginBottom: '5px', fontSize: '11px' },
+  keypadContainer: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' },
+  keypadDisplay: { backgroundColor: '#000', border: '2px solid #ff0055', color: '#ff0055', fontSize: '20px', padding: '5px 20px', width: '100px', textAlign: 'center', letterSpacing: '4px' },
+  keypadGrid: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '5px' },
+  keyBtn: { backgroundColor: '#222', color: '#fff', border: '1px solid #444', padding: '10px', cursor: 'pointer', fontWeight: 'bold' },
+  scoreBox: { border: '2px dashed #00ff66', padding: '20px', backgroundColor: '#000', margin: '20px 0', textAlign: 'left' }
 };
