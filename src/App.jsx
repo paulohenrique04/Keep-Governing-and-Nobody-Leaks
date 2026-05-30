@@ -1,76 +1,64 @@
 import { useState, useEffect } from 'react';
 
-// Link fictício do Google Drive para o manual
+// Link fictício do Google Drive para o manual unificado
 const MANUAL_DRIVE_URL = "https://drive.google.com/file/d/YOUR_MANUAL_ID/view";
 const QR_CODE_API = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(MANUAL_DRIVE_URL)}`;
 
-// ==========================================
-// BANCO DE COMPONENTES DOS 9 MÓDULOS (DINÂMICOS)
-// ==========================================
+// ============================================================================
+// BANCO DE COMPONENTES DOS 18 MÓDULOS (COMPLEMENTE ÀS CEGAS PARA O OPERADOR)
+// ============================================================================
 
-// Módulo 1: Alarme Primário (DSS05 + Incidentes)
+// Módulo 1: Alarme Primário (DSS05)
 function Modulo01({ onSolved, onStrike }) {
   const [selected, setSelected] = useState('');
-  const handleExecute = () => {
-    if (selected === 'isolar') onSolved();
-    else onStrike("Mudança não autorizada / Falha de contenção DSS05");
-  };
   return (
     <div style={styles.moduleCard}>
-      <div style={styles.moduleHeader}>MOD_01: ALARME PRIMÁRIO (DSS05)</div>
-      <p style={{ ...styles.moduleDesc, color: '#ff0055', animation: 'blink 1s infinite' }}>⚠️ EXTRAÇÃO DETECTADA: VAZAMENTO DE ATIVOS</p>
+      <div style={styles.moduleHeader}>SLOT DE SEGURANÇA [ATIVO]</div>
+      <p style={{ ...styles.moduleDesc, color: '#ff0055', animation: 'blink 1s infinite' }}>⚠️ ALERTA INTERNO: COMPORTAMENTO ANÔMALO DE DADOS</p>
       <div style={styles.radioGroup}>
-        {['Isolar Servidor', 'Aplicar Patch', 'Notificar Usuários', 'Reiniciar DB'].map((op, i) => {
-          const val = op.toLowerCase().replace(' ', '');
-          return (
-            <label key={i} style={styles.radioLabel}>
-              <input type="radio" name="mod1" onChange={() => setSelected(val)} /> {op}
-            </label>
-          );
-        })}
+        {['Isolar Servidor', 'Aplicar Patch', 'Notificar Usuários', 'Reiniciar DB'].map((op, i) => (
+          <label key={i} style={styles.radioLabel}>
+            <input type="radio" name="mod1" onChange={() => setSelected(op.toLowerCase().replace(' ', ''))} /> {op}
+          </label>
+        ))}
       </div>
-      <button style={styles.moduleBtn} onClick={handleExecute}>Executar Medida</button>
+      <button style={styles.moduleBtn} onClick={() => selected === 'isolarservidor' ? onSolved() : onStrike("Falha de contenção perimetral primária.")}>Executar Medida</button>
     </div>
   );
 }
 
-// Módulo 2: Colapso do Suporte (APO12 + Service Desk)
+// Módulo 2: Colapso do Suporte (APO12)
 function Modulo02({ onSolved, onStrike }) {
   return (
     <div style={styles.moduleCard}>
-      <div style={styles.moduleHeader}>MOD_02: COLAPSO DO SUPORTE (APO12)</div>
-      <p style={styles.moduleDesc}>Fila de Chamados: <span style={{ color: '#ff0055', fontWeight: 'bold' }}>99.999+</span></p>
+      <div style={styles.moduleHeader}>SLOT DE MONITORAMENTO [ATIVO]</div>
+      <p style={styles.moduleDesc}>Volumetria Indeterminada: <span style={{ color: '#ff0055', fontWeight: 'bold' }}>99.999+</span></p>
       <div style={styles.fakeChart}>
         <div style={{ ...styles.chartBar, height: '40%' }}></div>
         <div style={{ ...styles.chartBar, height: '70%' }}></div>
         <div style={{ ...styles.chartBar, height: '100%', backgroundColor: '#ff0055' }}></div>
       </div>
       <div style={{ display: 'flex', gap: '10px' }}>
-        <button style={{ ...styles.moduleBtn, flex: 1 }} onClick={onSolved}>Notificar Imprensa</button>
-        <button style={{ ...styles.moduleBtn, backgroundColor: '#ff0055', flex: 1 }} onClick={() => onStrike("Violação grave de Governança da LGPD!")}>Reter Comunicação</button>
+        <button style={{ ...styles.moduleBtn, flex: 1 }} onClick={onSolved}>Propagar Comunicado</button>
+        <button style={{ ...styles.moduleBtn, backgroundColor: '#ff0055', flex: 1 }} onClick={() => onStrike("Omissão de incidente regulatório detectado!")}>Reter Registro</button>
       </div>
     </div>
   );
 }
 
-// Módulo 3: Labirinto de Ativos (BAI09 + SACM) - RESPOSTA DINÂMICA
+// Módulo 3: Labirinto de Ativos (BAI09)
 function Modulo03({ onSolved, onStrike, serialNumber }) {
   const servidores = ['SRV-Alpha', 'SRV-Beta', 'SRV-Zeta', 'SRV-Omicron', 'SRV-Gamma'];
-  
   const handleSelect = (srv) => {
-    // LÓGICA DINÂMICA: Verifica se o último caractere do Serial é Letra ou Número
     const lastChar = serialNumber.charAt(serialNumber.length - 1);
-    const isLetter = isNaN(parseInt(lastChar));
-    const correctServer = isLetter ? 'SRV-Zeta' : 'SRV-Beta';
-
+    const correctServer = isNaN(parseInt(lastChar)) ? 'SRV-Zeta' : 'SRV-Beta';
     if (srv === correctServer) onSolved();
-    else onStrike(`Ativo incorreto! O Servidor alvo dependia do sufixo do Serial (${lastChar}).`);
+    else onStrike(`Redirecionamento inválido para o sufixo: ${lastChar}`);
   };
-
   return (
     <div style={styles.moduleCard}>
-      <div style={styles.moduleHeader}>MOD_03: LABIRINTO DE ATIVOS (BAI09)</div>
-      <p style={styles.moduleDesc}>Selecione o servidor que hospeda a base protegida (Consulte Regra de Sufixo):</p>
+      <div style={styles.moduleHeader}>SLOT DE MAPEAMENTO [ATIVO]</div>
+      <p style={styles.moduleDesc}>Estruturas de Nós de Redes Locais Detectadas:</p>
       <table style={styles.retroTable}>
         <thead>
           <tr><th>Identificador</th><th>Status</th><th>Ação</th></tr>
@@ -80,7 +68,7 @@ function Modulo03({ onSolved, onStrike, serialNumber }) {
             <tr key={idx}>
               <td>{srv}</td>
               <td style={{ color: '#ffd700' }}>ONLINE</td>
-              <td><button style={styles.tableBtn} onClick={() => handleSelect(srv)}>Inspecionar</button></td>
+              <td><button style={styles.tableBtn} onClick={() => handleSelect(srv)}>Vincular</button></td>
             </tr>
           ))}
         </tbody>
@@ -89,184 +77,279 @@ function Modulo03({ onSolved, onStrike, serialNumber }) {
   );
 }
 
-// Módulo 4: Caça à Causa Raiz (MEA02 + Problemas)
+// Módulo 4: Caça à Causa Raiz (MEA02)
 function Modulo04({ onSolved, onStrike }) {
   const [input, setInput] = useState('');
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (input.toLowerCase().trim() === 'sql injection') onSolved();
-    else onStrike("Diagnóstico de causa raiz incorreto!");
-  };
   return (
     <div style={styles.moduleCard}>
-      <div style={styles.moduleHeader}>MOD_04: CAÇA À CAUSA RAIZ (MEA02)</div>
-      <div style={styles.codeSnippet}>
-        <code>SELECT * FROM users WHERE id = '' OR 1=1;</code>
-      </div>
-      <form onSubmit={handleSubmit} style={styles.inlineForm}>
-        <input 
-          type="text" 
-          placeholder="Tipo de Ataque..." 
-          style={styles.retroInputClean} 
-          value={input} 
-          onChange={e => setInput(e.target.value)}
-        />
-        <button type="submit" style={styles.moduleBtn}>Analisar</button>
+      <div style={styles.moduleHeader}>SLOT DE CONSOLE [ATIVO]</div>
+      <div style={styles.codeSnippet}><code>SELECT * FROM users WHERE id = '' OR 1=1;</code></div>
+      <form onSubmit={(e) => { e.preventDefault(); input.toLowerCase().trim() === 'sql injection' ? onSolved() : onStrike("Vetor de ataque incorreto."); }} style={styles.inlineForm}>
+        <input type="text" placeholder="Diagnóstico..." style={styles.retroInputClean} value={input} onChange={e => setInput(e.target.value)} />
+        <button type="submit" style={styles.moduleBtn}>Submeter</button>
       </form>
     </div>
   );
 }
 
-// Módulo 5: Purga de Credenciais (DSS06 + Acessos)
+// Módulo 5: Purga de Credenciais (DSS06)
 function Modulo05({ onSolved, onStrike }) {
   const sessoes = [
-    { ip: '192.168.1.50', hora: '10:15', local: 'Interno (Admin)', target: false },
-    { ip: '200.45.12.189', hora: '03:42', local: 'Externo (Fora do Horário)', target: true },
-    { ip: '10.0.0.12', hora: '14:20', local: 'VPN Corporativa', target: false }
+    { ip: '192.168.1.50', local: 'Intranet Admin', t: false },
+    { ip: '200.45.12.189', local: 'External Unscheduled', t: true },
+    { ip: '10.0.0.12', local: 'Gateway Tunnel', t: false }
   ];
   return (
     <div style={styles.moduleCard}>
-      <div style={styles.moduleHeader}>MOD_05: PURGA DE CREDENCIAIS (DSS06)</div>
-      <p style={styles.moduleDesc}>Desconecte sessões externas fora do horário comercial:</p>
+      <div style={styles.moduleHeader}>SLOT DE SESSÕES [ATIVO]</div>
+      <p style={styles.moduleDesc}>Gerenciamento de conexões de túnel em tempo real:</p>
       {sessoes.map((s, i) => (
         <div key={i} style={styles.sessionRow}>
-          <span>{s.ip} [{s.hora}] - {s.local}</span>
-          <button style={styles.tableBtn} onClick={() => s.target ? onSolved() : onStrike("Acesso legítimo derrubado! Operação impactada.")}>Derrubar</button>
+          <span>{s.ip} &gt;&gt; {s.local}</span>
+          <button style={styles.tableBtn} onClick={() => s.t ? onSolved() : onStrike("Desconexão indevida de operação autorizada.")}>Terminar</button>
         </div>
       ))}
     </div>
   );
 }
 
-// Módulo 6: Sobrecarga de Tráfego (APO08 + Capacidade) - RESPOSTA DINÂMICA
+// Módulo 6: Sobrecarga de Tráfego (APO08)
 function Modulo06({ onSolved, onStrike, batteries }) {
   const [val, setVal] = useState(50);
-  
   const handleConfirm = () => {
-    // LÓGICA DINÂMICA: Meta depende da infraestrutura de baterias de backup detectadas
-    let targetValue = 75; 
-    if (batteries === 1) targetValue = 40;
-    if (batteries === 2) targetValue = 60;
-    if (batteries === 3) targetValue = 85;
-
-    if (parseInt(val) === targetValue) onSolved();
-    else onStrike(`Capacidade incorreta (${val}%). Para ${batteries} Bateria(s), o teto técnico diverge.`);
+    let target = 75;
+    if (batteries === 1) target = 40;
+    if (batteries === 2) target = 60;
+    if (batteries === 3) target = 85;
+    parseInt(val) === target ? onSolved() : onStrike("Gargalo térmico/orçamentário atingido.");
   };
-
   return (
     <div style={styles.moduleCard}>
-      <div style={styles.moduleHeader}>MOD_06: SOBRECARGA DE TRÁFEGO (APO08)</div>
-      <p style={styles.moduleDesc}>Gargalo crítico! Calcule a carga ideal conforme as Baterias de Backup:</p>
+      <div style={styles.moduleHeader}>SLOT DE CAPACIDADE [ATIVO]</div>
+      <p style={styles.moduleDesc}>Balanceamento de Carga de Processamento:</p>
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '15px 0' }}>
         <input type="range" min="0" max="100" value={val} onChange={e => setVal(e.target.value)} style={{ flex: 1 }} />
         <span style={{ fontSize: '20px', color: '#ffd700', width: '50px' }}>{val}%</span>
       </div>
-      <button style={styles.moduleBtn} onClick={handleConfirm}>Confirmar Alocação</button>
+      <button style={styles.moduleBtn} onClick={handleConfirm}>Estabilizar Fluxo</button>
     </div>
   );
 }
 
-// Módulo 7: Protocolo de Desastre (DSS04 + Continuidade)
+// Módulo 7: Protocolo de Desastre (DSS04)
 function Modulo07({ onSolved, onStrike }) {
   const [sequence, setSequence] = useState([]);
   const orderMap = { 'DB Auxiliar': 1, 'Firewall B': 2, 'Roteador 2': 3 };
-
   const handleToggle = (key) => {
     const nextSeq = [...sequence, orderMap[key]];
-    if (nextSeq[nextSeq.length - 1] !== nextSeq.length) {
-      setSequence([]);
-      onStrike("Sequência de contingência incorreta! Chaves desarmadas.");
-    } else {
-      setSequence(nextSeq);
-      if (nextSeq.length === 3) onSolved();
-    }
+    if (nextSeq[nextSeq.length - 1] !== nextSeq.length) { setSequence([]); onStrike("Ordem cronológica violada! Chaves reiniciadas."); }
+    else { setSequence(nextSeq); if (nextSeq.length === 3) onSolved(); }
   };
-
   return (
     <div style={styles.moduleCard}>
-      <div style={styles.moduleHeader}>MOD_07: PROTOCOLO DE DESASTRE (DSS04)</div>
-      <p style={styles.moduleDesc}>Ative a contingência na ordem cronológica estrita do manual:</p>
+      <div style={styles.moduleHeader}>SLOT INTERRUPTOR [ATIVO]</div>
+      <p style={styles.moduleDesc}>Comutadores Analógicos de Contingência Sequencial:</p>
       <div style={{ display: 'flex', justifyContent: 'space-around', margin: '15px 0' }}>
         {Object.keys(orderMap).map((name, i) => (
-          <button 
-            key={i} 
-            style={{ 
-              ...styles.tableBtn, 
-              padding: '10px', 
-              backgroundColor: sequence.includes(orderMap[name]) ? '#00ff66' : '#222',
-              color: sequence.includes(orderMap[name]) ? '#000' : '#fff'
-            }}
-            onClick={() => handleToggle(name)}
-          >
-            {name}
-          </button>
+          <button key={i} style={{ ...styles.tableBtn, padding: '10px', backgroundColor: sequence.includes(orderMap[name]) ? '#00ff66' : '#222', color: sequence.includes(orderMap[name]) ? '#000' : '#fff' }} onClick={() => handleToggle(name)}>{name}</button>
         ))}
       </div>
     </div>
   );
 }
 
-// Módulo 8: O Patch e a LGPD (MEA03 + Mudanças)
+// Módulo 8: O Patch e a LGPD (MEA03)
 function Modulo08({ onSolved, onStrike }) {
   const [pin, setPin] = useState('');
   const handleNum = (num) => {
     const current = pin + num;
     if (current.length === 4) {
       if (current === '2623') onSolved();
-      else {
-        setPin('');
-        onStrike("Código PIN de auditoria rejeitado.");
-      }
-    } else {
-      setPin(current);
-    }
+      else { setPin(''); onStrike("Assinatura digital corrompida."); }
+    } else setPin(current);
   };
   return (
     <div style={styles.moduleCard}>
-      <div style={styles.moduleHeader}>MOD_08: O PATCH E A LGPD (MEA03)</div>
-      <p style={styles.moduleDesc}>Digite o PIN de Autorização de Mudança (4 dígitos):</p>
+      <div style={styles.moduleHeader}>SLOT MATRIZ NUMÉRICA [ATIVO]</div>
       <div style={styles.keypadContainer}>
         <div style={styles.keypadDisplay}>{pin.padEnd(4, '_')}</div>
         <div style={styles.keypadGrid}>
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(n => (
-            <button key={n} style={styles.keyBtn} onClick={() => handleNum(n)}>{n}</button>
-          ))}
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(n => <button key={n} style={styles.keyBtn} onClick={() => handleNum(n)}>{n}</button>)}
         </div>
       </div>
     </div>
   );
 }
 
-// Módulo 9: O Relatório da Diretoria (MEA01 + Melhoria)
+// Módulo 9: O Relatório da Diretoria (MEA01)
 function Modulo09({ onSolved, onStrike }) {
-  const [checked, setChecked] = useState({ seguranca: false, custos: false, marketing: false });
-  const handleCheck = () => {
-    if (checked.seguranca && checked.custos && !checked.marketing) onSolved();
-    else onStrike("Transparência corporativa falhou! Métricas inadequadas enviadas.");
-  };
+  const [checked, setChecked] = useState({ seg: false, cust: false, mkt: false });
   return (
     <div style={styles.moduleCard}>
-      <div style={styles.moduleHeader}>MOD_09: RELATÓRIO EXECUTIVO (MEA01)</div>
-      <p style={styles.moduleDesc}>Selecione apenas as métricas exigidas pela diretoria:</p>
+      <div style={styles.moduleHeader}>SLOT AUDITORIA MÁSTER [ATIVO]</div>
+      <p style={styles.moduleDesc}>Selecione as métricas para compilação regulatória:</p>
       <div style={styles.radioGroup}>
-        <label style={styles.radioLabel}>
-          <input type="checkbox" onChange={e => setChecked({...checked, seguranca: e.target.checked})} /> Contas Comprometidas (Segurança)
-        </label>
-        <label style={styles.radioLabel}>
-          <input type="checkbox" onChange={e => setChecked({...checked, custos: e.target.checked})} /> Custo do Servidor (Custos)
-        </label>
-        <label style={styles.radioLabel}>
-          <input type="checkbox" onChange={e => setChecked({...checked, marketing: e.target.checked})} /> Pico de Jogadores (Marketing)
-        </label>
+        <label style={styles.radioLabel}><input type="checkbox" onChange={e => setChecked({...checked, seg: e.target.checked})} /> Contas Comprometidas (Métrica A)</label>
+        <label style={styles.radioLabel}><input type="checkbox" onChange={e => setChecked({...checked, cust: e.target.checked})} /> Custo do Servidor (Métrica B)</label>
+        <label style={styles.radioLabel}><input type="checkbox" onChange={e => setChecked({...checked, mkt: e.target.checked})} /> Pico de Jogadores (Métrica C)</label>
       </div>
-      <button style={styles.moduleBtn} onClick={handleCheck}>Enviar Relatório</button>
+      <button style={styles.moduleBtn} onClick={() => (checked.seg && checked.cust && !checked.mkt) ? onSolved() : onStrike("Ata rejeitada por excesso de ruído comercial.")}>Despachar Ata</button>
     </div>
   );
 }
 
-// ==========================================
-// COMPONENTE PRINCIPAL DO JOGO (GAME CORE)
-// ==========================================
+// Módulo 10: Cofre Criptográfico (EDM03 - Governança de Transparência)
+function Modulo10({ onSolved, onStrike }) {
+  const [clicks, setClicks] = useState(0);
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>SLOT DE INTEGRALIDADE [ATIVO]</div>
+      <p style={styles.moduleDesc}>Verificação de chaves públicas. Pressione o acionador exatamente 5 vezes:</p>
+      <div style={{ display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'center', margin: '15px 0' }}>
+        <button style={{ ...styles.moduleBtn, backgroundColor: '#ff0055', width: '80px', height: '80px', borderRadius: '50%' }} onClick={() => setClicks(clicks + 1)}>PULSAR</button>
+        <span style={{ fontSize: '24px', color: '#fff' }}>REG: {clicks}</span>
+      </div>
+      <button style={styles.moduleBtn} onClick={() => clicks === 5 ? onSolved() : (setClicks(0), onStrike("Assincronia de auditoria EDM03."))}>Validar Pulso</button>
+    </div>
+  );
+}
+
+// Módulo 11: Classificação de Dados (APO11 - Gestão de Qualidade)
+function Modulo11({ onSolved, onStrike }) {
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>SLOT DE CLASSIFICAÇÃO [ATIVO]</div>
+      <p style={styles.moduleDesc}>Destino de log: Dados médicos identificáveis de colaboradores e terceiros:</p>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        {['Público', 'Confidencial', 'Restrito'].map((level, i) => (
+          <button key={i} style={{ ...styles.moduleBtn, flex: 1 }} onClick={() => level === 'Confidencial' ? onSolved() : onStrike("Vazamento por classificação errônea APO11.")}>{level}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Módulo 12: Termômetro SLA (DSS01 - Gestão de Operações)
+function Modulo12({ onSolved, onStrike }) {
+  const [temp, setTemp] = useState(15);
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>SLOT DE TELEMETRIA [ATIVO]</div>
+      <p style={styles.moduleDesc}>Temperatura do Data Center: <span style={{ color: temp > 40 ? '#ff0055' : '#ffd700' }}>{temp}°C</span></p>
+      <div style={{ display: 'flex', gap: '10px', margin: '10px 0' }}>
+        <button style={{ ...styles.tableBtn, flex: 1 }} onClick={() => setTemp(temp + 5)}>Elevar Carga</button>
+        <button style={{ ...styles.tableBtn, flex: 1 }} onClick={() => setTemp(temp - 5)}>Resfriar</button>
+      </div>
+      <button style={styles.moduleBtn} onClick={() => temp === 25 ? onSolved() : onStrike("SLA violado! Sistema fora da faixa operacional estável.")}>Fixar SLA</button>
+    </div>
+  );
+}
+
+// Módulo 13: Matriz de Fornecedores (APO10 - Gestão de Fornecedores)
+function Modulo13({ onSolved, onStrike }) {
+  const [vendor, setVendor] = useState('');
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>SLOT DE PROVEDORES [ATIVO]</div>
+      <p style={styles.moduleDesc}>Selecione o provedor de Cloud com certificação de compliance ativa:</p>
+      <select style={styles.retroInput} onChange={e => setVendor(e.target.value)} defaultValue="">
+        <option value="" disabled>Selecionar...</option>
+        <option value="v1">NexusHosting (Sem SLA)</option>
+        <option value="v2">ApexCloud Enterprise (SOC2/ISO)</option>
+        <option value="v3">GlobalStorage (EUA Only)</option>
+      </select>
+      <button style={{ ...styles.moduleBtn, marginTop: '15px' }} onClick={() => vendor === 'v2' ? onSolved() : onStrike("Fornecedor sem conformidade técnica contratado!")}>Vincular Cloud</button>
+    </div>
+  );
+}
+
+// Módulo 14: Inventário de Software (BAI10 - Gestão de Configuração)
+function Modulo14({ onSolved, onStrike }) {
+  const assets = [{ name: 'Apache v2.2 (Depreciado)', danger: true }, { name: 'Node.js v20 (LTS)', danger: false }, { name: 'PostgreSQL v16', danger: false }];
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>SLOT DE INVENTÁRIO [ATIVO]</div>
+      <p style={styles.moduleDesc}>Remova a dependência obsoleta com brechas de segurança conhecidas:</p>
+      {assets.map((a, i) => (
+        <div key={i} style={styles.sessionRow}>
+          <span>{a.name}</span>
+          <button style={styles.tableBtn} onClick={() => a.danger ? onSolved() : onStrike("Remoção incorreta de ativo crítico em produção!")}>Expurgar</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Módulo 15: Simulação de Phishing (BAI05 - Gestão de Mudança Organizacional)
+function Modulo15({ onSolved, onStrike }) {
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>SLOT COMUNICAÇÃO INTERNA [ATIVO]</div>
+      <div style={styles.codeSnippet}><code>DE: admin@banc0-gti.com | ASSUNTO: ATUALIZAÇÃO RESTRITA DA DIRETORIA!</code></div>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button style={{ ...styles.moduleBtn, backgroundColor: '#ff0055', flex: 1 }} onClick={() => onStrike("Ataque de engenharia social bem-sucedido na empresa.")}>Baixar Anexo</button>
+        <button style={{ ...styles.moduleBtn, flex: 1 }} onClick={onSolved}>Denunciar Phishing</button>
+      </div>
+    </div>
+  );
+}
+
+// Módulo 16: Linha de Base de Orçamento (APO06 - Gestão de Custos)
+function Modulo16({ onSolved, onStrike }) {
+  const [cost, setCost] = useState(0);
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>SLOT ORÇAMENTÁRIO [ATIVO]</div>
+      <p style={styles.moduleDesc}>Ajuste o aporte para o CAPEX de segurança anual da empresa:</p>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', margin: '15px 0' }}>
+        <button style={styles.tableBtn} onClick={() => setCost(cost - 50)}>-50k</button>
+        <span style={{ fontSize: '18px', color: '#ffd700', width: '100px', textAlign: 'center' }}>${cost}k USD</span>
+        <button style={styles.tableBtn} onClick={() => setCost(cost + 50)}>+50k</button>
+      </div>
+      <button style={styles.moduleBtn} onClick={() => cost === 150 ? onSolved() : onStrike("Orçamento desalinhado com o Planejamento Estratégico APO06.")}>Validar CAPEX</button>
+    </div>
+  );
+}
+
+// Módulo 17: Auditoria Concorrente (MEA02 - Monitorar Segurança)
+function Modulo17({ onSolved, onStrike }) {
+  const [val, setVal] = useState('');
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>SLOT CENTRAL DE VERIFICAÇÃO [ATIVO]</div>
+      <p style={styles.moduleDesc}>Selecione o tipo de auditoria obrigatória requerida pela ANPD:</p>
+      <div style={styles.radioGroup}>
+        {['Auditoria Interna Anual', 'Auditoria Externa Independente', 'Varredura Automatizada'].map((op, i) => (
+          <label key={i} style={styles.radioLabel}>
+            <input type="radio" name="mod17" onChange={() => setVal(op)} /> {op}
+          </label>
+        ))}
+      </div>
+      <button style={styles.moduleBtn} onClick={() => val === 'Auditoria Externa Independente' ? onSolved() : onStrike("Nível de idoneidade insuficiente para a ANPD.")}>Emitir Laudo</button>
+    </div>
+  );
+}
+
+// Módulo 18: Gestão de Identidade (DSS05 - Controle de Privilégios)
+function Modulo18({ onSolved, onStrike }) {
+  const roles = [{ name: 'Estagiário de Dev', role: 'Root Admin', s: true }, { name: 'CTO Executive', role: 'Global Admin', s: false }, { name: 'Analista de Infra', role: 'SysOps Admin', s: false }];
+  return (
+    <div style={styles.moduleCard}>
+      <div style={styles.moduleHeader}>SLOT CONTROLE DE ACESSOS [ATIVO]</div>
+      <p style={styles.moduleDesc}>Mapeamento de Matriz de Privilégios Corporativos:</p>
+      {roles.map((r, i) => (
+        <div key={i} style={styles.sessionRow}>
+          <span>{r.name} &gt; {r.role}</span>
+          <button style={styles.tableBtn} onClick={() => r.s ? onSolved() : onStrike("Erro de revogação. Princípio do menor privilégio quebrado.")}>Revogar Perfil</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================================
+// COMPONENTE PRINCIPAL DO JOGO E GESTÃO DE RANKING LOCAL (SEM BANCO DE DADOS)
+// ============================================================================
 
 export default function App() {
   const [gameState, setGameState] = useState('START');
@@ -275,24 +358,23 @@ export default function App() {
   const [timeRemaining, setTimeRemaining] = useState(300);
   const [finalTime, setFinalTime] = useState(0);
 
-  // Atributos Randômicos da Infraestrutura (VITAL para engenharia reversa do manual)
   const [serialNumber, setSerialNumber] = useState('');
   const [batteriesCount, setBatteriesCount] = useState(1);
 
-  // Estados dos Módulos e do Ecossistema de Erros
   const [activeModuleIds, setActiveModuleIds] = useState([]);
   const [solvedModules, setSolvedModules] = useState([]);
   const [strikes, setStrikes] = useState(0); 
   const [strikeAlert, setStrikeAlert] = useState('');
 
-  // Define a velocidade do relógio com base nos erros (Mecânica Hardcore)
+  // Tabela de Classificação Local (Salva na memória da sessão do navegador)
+  const [ranking, setRanking] = useState([]);
+
   const getTimeSpeedMultiplier = () => {
-    if (strikes === 1) return 1.35; // 35% mais rápido
-    if (strikes === 2) return 1.75; // 75% mais rápido
+    if (strikes === 1) return 1.35;
+    if (strikes === 2) return 1.75;
     return 1.0;
   };
 
-  // Relógio com multiplicador adaptável de ticks dinâmicos
   useEffect(() => {
     let timer;
     if (gameState === 'PLAYING' && timeRemaining > 0) {
@@ -311,20 +393,15 @@ export default function App() {
     return () => clearInterval(timer);
   }, [gameState, timeRemaining, strikes]);
 
-  // Sorteador de Módulos e Geração Dinâmica de Variáveis de Infraestrutura
   const generateCrisisEnvironment = () => {
-    // 1. Sorteia os 3 módulos únicos
-    const totalModules = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    // Sorteia 3 módulos únicos dentro do universo expandido de 18 módulos
+    const totalModules = Array.from({ length: 18 }, (_, i) => i + 1);
     const shuffled = totalModules.sort(() => 0.5 - Math.random());
     setActiveModuleIds(shuffled.slice(0, 3));
 
-    // 2. Cria Serial Number aleatório (Metade termina em Letra, metade em Número)
     const midDigits = Math.floor(1000 + Math.random() * 9000);
     const suffixes = ['X', 'Z', 'N', '4', '7', '2'];
-    const selectedSuffix = suffixes[Math.floor(Math.random() * suffixes.length)];
-    setSerialNumber(`GTI-${midDigits}-${selectedSuffix}`);
-
-    // 3. Sorteia Baterias de Backup (1 a 3)
+    setSerialNumber(`GTI-${midDigits}-${suffixes[Math.floor(Math.random() * suffixes.length)]}`);
     setBatteriesCount(Math.floor(Math.random() * 3) + 1);
   };
 
@@ -345,8 +422,25 @@ export default function App() {
   };
 
   const endGame = (result) => {
-    setFinalTime(300 - timeRemaining);
+    const calculatedFinalTime = 300 - timeRemaining;
+    setFinalTime(calculatedFinalTime);
     setGameResult(result);
+
+    // Se o time vencer, salva o registro no ranking local
+    if (result === 'WIN') {
+      const currentRun = {
+        name: teamName.toUpperCase(),
+        time: calculatedFinalTime,
+        strikesCommitted: strikes,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      
+      setRanking((prevRanking) => {
+        const updated = [...prevRanking, currentRun];
+        // Ordenação competitiva: Menor tempo de resposta, desempatando por menor número de strikes
+        return updated.sort((a, b) => a.time - b.time || a.strikesCommitted - b.strikesCommitted);
+      });
+    }
     setGameState('GAME_OVER');
   };
 
@@ -354,23 +448,20 @@ export default function App() {
     if (!solvedModules.includes(id)) {
       const updated = [...solvedModules, id];
       setSolvedModules(updated);
-      setStrikeAlert(`✓ Módulo 0${id} neutralizado com sucesso.`);
-      if (updated.length === 3) {
-        endGame('WIN');
-      }
+      setStrikeAlert(`✓ Um canal de redundância foi liberado.`);
+      if (updated.length === 3) endGame('WIN');
     }
   };
 
   const handleModuleStrike = (msg) => {
     const nextStrikes = strikes + 1;
     setStrikes(nextStrikes);
-    
     if (nextStrikes >= 3) {
-      setStrikeAlert("🚨 LIMITE DE INFRAÇÕES EXCEDIDO! EXPLOSÃO IMEDIATA!");
+      setStrikeAlert("🚨 COLAPSO TOTAL DA INFRAESTRUTURA!");
       endGame('LOSE');
     } else {
-      setStrikeAlert(`🚨 STRIKE ${nextStrikes}/3: ${msg} [Relógio Acelerado!]`);
-      setTimeRemaining((prev) => Math.max(0, prev - 30)); // Remove 30 segundos punitivos imediatos
+      setStrikeAlert(`🚨 VIOLAÇÃO: ${msg}`);
+      setTimeRemaining((prev) => Math.max(0, prev - 30));
     }
   };
 
@@ -378,8 +469,8 @@ export default function App() {
     if (solvedModules.includes(id)) {
       return (
         <div style={{ ...styles.moduleCard, borderColor: '#00ff66' }} key={id}>
-          <div style={styles.moduleHeader}>MÓDULO 0{id} <span style={styles.ledGreen}></span></div>
-          <p style={{ color: '#00ff66', textAlign: 'center', padding: '20px' }}>✓ INTEGRALIZADO EM COMPLIANCE</p>
+          <div style={styles.moduleHeader}>SLOT INTEGRALIZADO <span style={styles.ledGreen}></span></div>
+          <p style={{ color: '#00ff66', textAlign: 'center', padding: '30px' }}>✓ ESTÁVEL / EM COMPLIANCE</p>
         </div>
       );
     }
@@ -394,6 +485,15 @@ export default function App() {
       case 7: return <Modulo07 key={id} onSolved={() => handleModuleSolved(7)} onStrike={handleModuleStrike} />;
       case 8: return <Modulo08 key={id} onSolved={() => handleModuleSolved(8)} onStrike={handleModuleStrike} />;
       case 9: return <Modulo09 key={id} onSolved={() => handleModuleSolved(9)} onStrike={handleModuleStrike} />;
+      case 10: return <Modulo10 key={id} onSolved={() => handleModuleSolved(10)} onStrike={handleModuleStrike} />;
+      case 11: return <Modulo11 key={id} onSolved={() => handleModuleSolved(11)} onStrike={handleModuleStrike} />;
+      case 12: return <Modulo12 key={id} onSolved={() => handleModuleSolved(12)} onStrike={handleModuleStrike} />;
+      case 13: return <Modulo13 key={id} onSolved={() => handleModuleSolved(13)} onStrike={handleModuleStrike} />;
+      case 14: return <Modulo14 key={id} onSolved={() => handleModuleSolved(14)} onStrike={handleModuleStrike} />;
+      case 15: return <Modulo15 key={id} onSolved={() => handleModuleSolved(15)} onStrike={handleModuleStrike} />;
+      case 16: return <Modulo16 key={id} onSolved={() => handleModuleSolved(16)} onStrike={handleModuleStrike} />;
+      case 17: return <Modulo17 key={id} onSolved={() => handleModuleSolved(17)} onStrike={handleModuleStrike} />;
+      case 18: return <Modulo18 key={id} onSolved={() => handleModuleSolved(18)} onStrike={handleModuleStrike} />;
       default: return null;
     }
   };
@@ -408,111 +508,105 @@ export default function App() {
     <div style={styles.bodyContainer}>
       <div style={styles.retroTerminal}>
         <header style={styles.terminalHeader}>
-          <div>SISTEMA CRÍTICO DE GOVERNANÇA GTI v6.0-HARDCORE</div>
-          <div>EPIC_SANDBOX // MULTI_STRIKE_ENABLED</div>
+          <div>PAINEL OPERACIONAL CRÍTICO GTI v7.5</div>
+          <div>MÓDULOS DE SLA ÀS CEGAS // LEILÃO DE TEMPO</div>
         </header>
 
         {gameState === 'START' && (
           <div style={styles.centerScreen}>
             <h1 style={styles.glitchTitle}>PROJECT: KEEP TALK GTI</h1>
-            <p style={styles.subtitle}>COBIT & ITIL Crisis Simulation Sandbox</p>
-            <button style={styles.retroButton} onClick={() => setGameState('TEAM_INPUT')}>
-              INICIAR PROTOCOLO DE CRISE (JOGAR)
-            </button>
+            <p style={styles.subtitle}>COBIT / ITIL Sandbox Blind Server Assessment</p>
+            <button style={styles.retroButton} onClick={() => setGameState('TEAM_INPUT')}>CONFIGURAR SESSÃO DE CRISE</button>
           </div>
         )}
 
         {gameState === 'TEAM_INPUT' && (
           <div style={styles.centerScreen}>
-            <h2>CADASTRO DE OPERADORES DE TI</h2>
+            <h2>AUTENTICAÇÃO DE OPERADORES DE INFRAESTRUTURA</h2>
             <form onSubmit={handleTeamSubmit} style={styles.form}>
-              <label style={styles.label}>IDENTIFICAÇÃO DA EQUIPE:</label>
-              <input 
-                type="text" 
-                style={styles.retroInput} 
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                placeholder="Ex: GRUPO_05_GTI"
-                required
-              />
-              <button type="submit" style={styles.retroButton}>GERAR ELEMENTOS RANDÔMICOS</button>
+              <label style={styles.label}>NOME DO CLUSTER / TIME:</label>
+              <input type="text" style={styles.retroInput} value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Ex: ALPHA_TEAM_GTI" required />
+              <button type="submit" style={styles.retroButton}>CRIPTOGRAFAR SLOTS</button>
             </form>
           </div>
         )}
 
         {gameState === 'MANUAL_QR' && (
           <div style={styles.centerScreen}>
-            <h2>MANUAL DE GOVERNANÇA LIBERADO (COBIT/ITIL)</h2>
-            <p style={{ color: '#ffd700', marginBottom: '20px' }}>
-              O Comitê de Governança deve escanear o QR Code para ler as regras de contingência.
-            </p>
-            <div style={styles.qrContainer}>
-              <img src={QR_CODE_API} alt="QR Code" style={styles.qrCode} />
-            </div>
-            <p style={styles.codeText}>Módulos Armados nesta rodada: {activeModuleIds.map(id => `[Mód 0${id}] `)}</p>
-            <button style={styles.retroButton} onClick={startBomb}>
-              ENTENDIDO. ENTRAR NO PAINEL DA BOMBA!
-            </button>
+            <h2>MATRIZ DE REGULAÇÃO LIBERADA (ANPD / COBIT / ITIL)</h2>
+            <p style={{ color: '#ffd700', marginBottom: '20px' }}>O comitê precisa escanear o QR Code para ler as diretrizes cegas.</p>
+            <div style={styles.qrContainer}><img src={QR_CODE_API} alt="QR Code" style={{ display: 'block' }} /></div>
+            <p style={styles.codeText}>Sistemas Armados em Operação: [3 SLOTS CRIPTOGRAFADOS CARREGADOS]</p>
+            <button style={styles.retroButton} onClick={startBomb}>ENTRAR NO TERMINAL COBIÇADO</button>
           </div>
         )}
 
         {gameState === 'PLAYING' && (
           <div style={styles.gameGrid}>
             <div style={styles.sidebar}>
-              <div style={styles.panelTitle}>STATUS DA CRISE</div>
-              <div style={{ ...styles.countdown, color: timeRemaining < 60 ? '#ff0055' : '#00ff66' }}>
-                {formatTime(timeRemaining)}
-              </div>
+              <div style={styles.panelTitle}>STATUS DA INFRAESTRUTURA</div>
+              <div style={{ ...styles.countdown, color: timeRemaining < 60 ? '#ff0055' : '#00ff66' }}>{formatTime(timeRemaining)}</div>
               
-              {/* Painel de Exibição de Erros Dinâmicos (Strikes) */}
               <div style={styles.strikeContainer}>
-                <span style={{ color: '#aaa', fontSize: '12px' }}>STRIKES: </span>
-                <span style={{ color: strikes > 0 ? '#ff0055' : '#333', fontSize: '22px', fontWeight: 'bold' }}>X </span>
-                <span style={{ color: strikes > 1 ? '#ff0055' : '#333', fontSize: '22px', fontWeight: 'bold' }}>X </span>
-                <span style={{ color: strikes > 2 ? '#ff0055' : '#333', fontSize: '22px', fontWeight: 'bold' }}>X</span>
+                <span style={{ color: '#aaa', fontSize: '11px' }}>VIOLAÇÕES DE POLÍTICA: </span>
+                <span style={{ color: strikes > 0 ? '#ff0055' : '#333', fontSize: '20px', fontWeight: 'bold' }}>X </span>
+                <span style={{ color: strikes > 1 ? '#ff0055' : '#333', fontSize: '20px', fontWeight: 'bold' }}>X </span>
+                <span style={{ color: strikes > 2 ? '#ff0055' : '#333', fontSize: '20px', fontWeight: 'bold' }}>X</span>
               </div>
 
-              {/* Variáveis Físicas Fundamentais da Rodada */}
               <div style={styles.hardwarePanel}>
-                <div style={styles.hardwareHeader}>HARDWARE ATIVO</div>
-                <p><strong>SERIAL NO:</strong> <span style={{color: '#ffd700'}}>{serialNumber}</span></p>
-                <p><strong>BATERIAS BACKUP:</strong> <span style={{color: '#ffd700'}}>{batteriesCount} UN</span></p>
+                <div style={styles.hardwareHeader}>METADADOS DO INTEGRALIZADOR</div>
+                <p><strong>SERIAL ID:</strong> <span style={{color: '#ffd700'}}>{serialNumber}</span></p>
+                <p><strong>CÉLULAS BACKUP:</strong> <span style={{color: '#ffd700'}}>{batteriesCount} UND</span></p>
               </div>
 
               <div style={styles.metaData}>
-                <p><strong>EQUIPE:</strong> {teamName}</p>
-                <p><strong>CONCLUÍDOS:</strong> {solvedModules.length} / 3</p>
-                {getTimeSpeedMultiplier() > 1 && (
-                  <p style={{color: '#ff0055', fontWeight: 'bold'}}>⚠️ VELOCIDADE: {getTimeSpeedMultiplier()}x</p>
-                )}
+                <p><strong>TIME ATIVO:</strong> {teamName}</p>
+                <p><strong>SLOTS FECHADOS:</strong> {solvedModules.length} / 3</p>
+                {getTimeSpeedMultiplier() > 1 && <p style={{color: '#ff0055', fontWeight: 'bold'}}>⚠️ DRIFT DO RELÓGIO: {getTimeSpeedMultiplier()}x</p>}
               </div>
               {strikeAlert && <div style={styles.alertText}>{strikeAlert}</div>}
             </div>
-
-            <div style={styles.modulesContainer}>
-              {activeModuleIds.map(id => renderModule(id))}
-            </div>
+            <div style={styles.modulesContainer}>{activeModuleIds.map(id => renderModule(id))}</div>
           </div>
         )}
 
         {gameState === 'GAME_OVER' && (
           <div style={styles.centerScreen}>
             {gameResult === 'WIN' ? (
-              <>
-                <h1 style={{...styles.glitchTitle, color: '#00ff66'}}>CRISE MITIGADA!</h1>
-                <div style={styles.scoreBox}>
-                  <p><strong>EQUIPE:</strong> {teamName.toUpperCase()}</p>
-                  <p><strong>TEMPO DE RESPOSTA:</strong> {formatTime(finalTime)}</p>
-                  <p><strong>POLÍTICA DE ERROS:</strong> {strikes} Strike(s) cometidos</p>
-                </div>
-              </>
+              <h1 style={{...styles.glitchTitle, color: '#00ff66'}}>MIGRAÇÃO EXECUTADA COM SUCESSO!</h1>
             ) : (
-              <>
-                <h1 style={{...styles.glitchTitle, color: '#ff0055'}}>SISTEMA EXPLODIDO!</h1>
-                <p style={styles.subtitle}>A infraestrutura colapsou ou a ANPD aplicou sanções de encerramento compulsório.</p>
-              </>
+              <h1 style={{...styles.glitchTitle, color: '#ff0055'}}>SISTEMA COMPROMETIDO (EXPLODIDO)!</h1>
             )}
-            <button style={styles.retroButton} onClick={() => setGameState('START')}>REINICIAR</button>
+
+            <div style={styles.scoreBox}>
+              <h3 style={{ color: '#ffd700', marginTop: 0, textTransform: 'uppercase' }}>Histórico Competitivo (Sessão Atual)</h3>
+              {ranking.length === 0 ? (
+                <p style={{ color: '#888', fontSize: '12px' }}>Nenhum time completou em compliance ainda.</p>
+              ) : (
+                <table style={{ ...styles.retroTable, marginTop: '10px' }}>
+                  <thead>
+                    <tr>
+                      <th>Pos</th>
+                      <th>Cluster/Time</th>
+                      <th>Tempo de Resposta</th>
+                      <th>Strikes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ranking.map((run, idx) => (
+                      <tr key={idx} style={run.name === teamName.toUpperCase() ? { backgroundColor: '#222', border: '1px solid #00ff66' } : {}}>
+                        <td style={{ color: idx === 0 ? '#ffd700' : '#00ff66' }}>{idx + 1}º</td>
+                        <td>{run.name}</td>
+                        <td>{formatTime(run.time)}</td>
+                        <td>{run.strikesCommitted}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            <button style={styles.retroButton} onClick={() => setGameState('START')}>REINICIAR SISTEMA</button>
           </div>
         )}
       </div>
@@ -520,51 +614,47 @@ export default function App() {
   );
 }
 
-// ==========================================
-// FOLHA DE ESTILOS MAXIMALISTA RETRÔ
-// ==========================================
 const styles = {
   bodyContainer: { backgroundColor: '#0a0a0a', color: '#00ff66', fontFamily: 'monospace', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
-  retroTerminal: { width: '100%', maxWidth: '1200px', backgroundColor: '#121212', border: '4px solid #333', padding: '20px', position: 'relative' },
-  terminalHeader: { display: 'flex', justifyContent: 'space-between', borderBottom: '2px dashed #333', paddingBottom: '10px', marginBottom: '20px', fontSize: '12px', color: '#888' },
-  centerScreen: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '40px 10px' },
-  glitchTitle: { fontSize: '2.5rem', fontWeight: 'bold', margin: '0 0 10px 0', textShadow: '3px 3px #ff0055' },
-  subtitle: { fontSize: '14px', color: '#ffd700', marginBottom: '30px' },
-  retroButton: { backgroundColor: '#00ff66', color: '#000', border: 'none', padding: '15px 30px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '4px 4px 0px #ffd700' },
+  retroTerminal: { width: '100%', maxWidth: '1200px', backgroundColor: '#121212', border: '4px solid #333', padding: '20px' },
+  terminalHeader: { display: 'flex', justifyContent: 'space-between', borderBottom: '2px dashed #333', paddingBottom: '10px', marginBottom: '20px', fontSize: '11px', color: '#888' },
+  centerScreen: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '30px 10px' },
+  glitchTitle: { fontSize: '2.2rem', fontWeight: 'bold', margin: '0 0 10px 0', textShadow: '3px 3px #ff0055' },
+  subtitle: { fontSize: '13px', color: '#ffd700', marginBottom: '35px' },
+  retroButton: { backgroundColor: '#00ff66', color: '#000', border: 'none', padding: '14px 28px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '4px 4px 0px #ffd700' },
   form: { display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '400px', gap: '10px' },
   label: { color: '#fff', textAlign: 'left' },
-  retroInput: { backgroundColor: '#000', border: '2px solid #ffd700', color: '#ffd700', padding: '12px', fontFamily: 'monospace' },
+  retroInput: { backgroundColor: '#000', border: '2px solid #ffd700', color: '#ffd700', padding: '12px', fontFamily: 'monospace', width: '100%' },
   retroInputClean: { backgroundColor: '#000', border: '1px solid #00ff66', color: '#00ff66', padding: '8px', fontFamily: 'monospace', flex: 1 },
   qrContainer: { backgroundColor: '#fff', padding: '10px', border: '4px solid #ffd700', marginBottom: '20px' },
-  qrCode: { display: 'block' },
   codeText: { color: '#ffd700', margin: '20px 0' },
-  gameGrid: { display: 'grid', gridTemplateColumns: '300px 1fr', gap: '20px' },
+  gameGrid: { display: 'grid', gridTemplateColumns: '280px 1fr', gap: '20px' },
   sidebar: { backgroundColor: '#000', border: '2px solid #333', padding: '15px' },
-  panelTitle: { backgroundColor: '#ffd700', color: '#000', fontWeight: 'bold', padding: '5px', textAlign: 'center' },
-  countdown: { fontSize: '3rem', fontWeight: 'bold', textAlign: 'center', marginTop: '10px', marginBottom: '5px' },
+  panelTitle: { backgroundColor: '#ffd700', color: '#000', fontWeight: 'bold', padding: '5px', textAlign: 'center', fontSize: '12px' },
+  countdown: { fontSize: '2.8rem', fontWeight: 'bold', textAlign: 'center', marginTop: '10px' },
   strikeContainer: { textAlign: 'center', padding: '5px', borderBottom: '1px solid #222', marginBottom: '15px' },
-  hardwarePanel: { backgroundColor: '#111', border: '1px dashed #ffd700', padding: '10px', marginBottom: '15px', fontSize: '12px' },
+  hardwarePanel: { backgroundColor: '#111', border: '1px dashed #ffd700', padding: '10px', marginBottom: '15px', fontSize: '11px' },
   hardwareHeader: { color: '#fff', fontWeight: 'bold', borderBottom: '1px solid #333', paddingBottom: '3px', marginBottom: '5px' },
-  metaData: { borderTop: '1px solid #333', paddingTop: '10px', fontSize: '12px', color: '#aaa' },
+  metaData: { borderTop: '1px solid #333', paddingTop: '10px', fontSize: '11px', color: '#aaa' },
   modulesContainer: { display: 'flex', flexDirection: 'column', gap: '20px' },
   moduleCard: { backgroundColor: '#151515', border: '2px solid #ff0055', padding: '15px' },
-  moduleHeader: { display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderBottom: '1px solid #333', paddingBottom: '5px', marginBottom: '10px' },
-  moduleDesc: { fontSize: '13px', color: '#ccc', marginBottom: '15px' },
+  moduleHeader: { fontWeight: 'bold', borderBottom: '1px solid #333', paddingBottom: '5px', marginBottom: '10px', color: '#ff0055', fontSize: '12px', letterSpacing: '1px' },
+  moduleDesc: { fontSize: '12px', color: '#ccc', marginBottom: '15px' },
   radioGroup: { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '15px' },
-  radioLabel: { color: '#ffd700', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' },
-  moduleBtn: { backgroundColor: '#ffd700', color: '#000', border: 'none', padding: '10px 20px', fontWeight: 'bold', cursor: 'pointer' },
-  alertText: { marginTop: '20px', padding: '10px', backgroundColor: '#220005', borderLeft: '3px solid #ff0055', fontSize: '12px' },
-  ledGreen: { width: '12px', height: '12px', backgroundColor: '#00ff66', borderRadius: '50%', display: 'inline-block' },
-  fakeChart: { display: 'flex', alignItems: 'flex-end', gap: '10px', height: '60px', backgroundColor: '#000', padding: '10px', marginBottom: '15px' },
-  chartBar: { width: '30%', backgroundColor: '#ffd700', transition: 'height 0.3s' },
-  retroTable: { width: '100%', borderCollapse: 'collapse', marginBottom: '15px', fontSize: '12px' },
-  tableBtn: { backgroundColor: '#333', color: '#00ff66', border: '1px solid #00ff66', padding: '2px 8px', cursor: 'pointer' },
-  codeSnippet: { backgroundColor: '#000', padding: '10px', border: '1px dashed #ffd700', color: '#00ff66', marginBottom: '15px', fontSize: '12px' },
+  radioLabel: { color: '#ffd700', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' },
+  moduleBtn: { backgroundColor: '#ffd700', color: '#000', border: 'none', padding: '10px 16px', fontWeight: 'bold', cursor: 'pointer' },
+  alertText: { marginTop: '20px', padding: '10px', backgroundColor: '#220005', borderLeft: '3px solid #ff0055', fontSize: '11px' },
+  ledGreen: { width: '10px', height: '10px', backgroundColor: '#00ff66', borderRadius: '50%', display: 'inline-block' },
+  fakeChart: { display: 'flex', alignItems: 'flex-end', gap: '10px', height: '50px', backgroundColor: '#000', padding: '10px', marginBottom: '15px' },
+  chartBar: { width: '30%', backgroundColor: '#ffd700' },
+  retroTable: { width: '100%', borderCollapse: 'collapse', marginBottom: '15px', fontSize: '11px' },
+  tableBtn: { backgroundColor: '#333', color: '#00ff66', border: '1px solid #00ff66', padding: '4px 8px', cursor: 'pointer' },
+  codeSnippet: { backgroundColor: '#000', padding: '10px', border: '1px dashed #ffd700', color: '#00ff66', marginBottom: '15px', fontSize: '11px' },
   inlineForm: { display: 'flex', gap: '10px' },
-  sessionRow: { display: 'flex', justifyContent: 'space-between', padding: '5px', backgroundColor: '#000', marginBottom: '5px', fontSize: '11px' },
+  sessionRow: { display: 'flex', justifyContent: 'space-between', padding: '6px', backgroundColor: '#000', marginBottom: '5px', fontSize: '11px', alignItems: 'center' },
   keypadContainer: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' },
   keypadDisplay: { backgroundColor: '#000', border: '2px solid #ff0055', color: '#ff0055', fontSize: '20px', padding: '5px 20px', width: '100px', textAlign: 'center', letterSpacing: '4px' },
   keypadGrid: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '5px' },
-  keyBtn: { backgroundColor: '#222', color: '#fff', border: '1px solid #444', padding: '10px', cursor: 'pointer', fontWeight: 'bold' },
-  scoreBox: { border: '2px dashed #00ff66', padding: '20px', backgroundColor: '#000', margin: '20px 0', textAlign: 'left' }
+  keyBtn: { backgroundColor: '#222', color: '#fff', border: '1px solid #444', padding: '8px', cursor: 'pointer', fontWeight: 'bold' },
+  scoreBox: { border: '2px dashed #00ff66', padding: '15px', backgroundColor: '#000', margin: '20px 0', width: '100%', maxWidth: '600px', textAlign: 'left' }
 };
