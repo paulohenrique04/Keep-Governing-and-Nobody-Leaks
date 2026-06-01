@@ -373,6 +373,7 @@ export default function App() {
   const lastMinuteAudioRef = useRef(null);
   const successAudioRef = useRef(null);
   const failAudioRef = useRef(null);
+  const startScreeanAudioRef = useRef(null);
 
   const getTimeSpeedMultiplier = () => {
     if (strikes === 1) return 1.35;
@@ -398,10 +399,14 @@ export default function App() {
     successAudioRef.current = new Audio('/success.mpeg');
     failAudioRef.current = new Audio('/fail.mpeg');
 
+    startScreeanAudioRef.current = new Audio('/inicial.mpeg');
+    // startScreeanAudioRef.current.loop = true;
+
     return () => {
       // Garante que tudo pare se o componente sumir da tela
       audioRef.current?.pause();
       lastMinuteAudioRef.current?.pause();
+      successAudioRef.current?.pause();
     };
   }, []);
 
@@ -409,12 +414,27 @@ export default function App() {
   useEffect(() => {
     const normalClock = audioRef.current;
     const lastMinuteClock = lastMinuteAudioRef.current;
+    const startAudio = startScreeanAudioRef.current;
     
     if (!normalClock || !lastMinuteClock) return;
 
     const multiplier = getTimeSpeedMultiplier();
 
-    if (gameState === 'PLAYING') {
+    if (gameState === 'START' || gameState === 'TEAM_INPUT') {
+      normalClock.pause();
+      normalClock.currentTime = 0;
+      lastMinuteClock.pause();
+      lastMinuteClock.currentTime = 0;
+
+      // Toca o som da tela inicial
+      if (startAudio.paused) {
+        startAudio.play().catch(err => {
+          console.log("Autoplay bloqueado. O som começará após o primeiro clique do usuário.", err);
+        });
+      }
+    }
+
+    else if (gameState === 'PLAYING') {
       // Aplica a aceleração em ambos os áudios de cronômetro
       normalClock.playbackRate = multiplier;
       lastMinuteClock.playbackRate = multiplier;
