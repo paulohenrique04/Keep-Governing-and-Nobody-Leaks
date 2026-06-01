@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // Link fictício do Google Drive para o manual unificado
 const MANUAL_DRIVE_URL = "https://drive.google.com/file/d/1vmM8drVeeuHE2zGCaAp846PlfByKj89J/view?usp=sharing";
@@ -369,11 +369,79 @@ export default function App() {
   // Tabela de Classificação Local (Salva na memória da sessão do navegador)
   const [ranking, setRanking] = useState([]);
 
+  const audioRef = useRef(null);
+  const lastMinuteAudioRef = useRef(null);
+  const successAudioRef = useRef(null);
+  const failAudioRef = useRef(null);
+
   const getTimeSpeedMultiplier = () => {
     if (strikes === 1) return 1.35;
     if (strikes === 2) return 1.75;
     return 1.0;
   };
+
+  const playSoundEffect = (audioElement) => {
+    if (audioElement) {
+      audioElement.currentTime = 0;
+      audioElement.play().catch(err => console.log("Bloqueio de áudio:", err));
+    }
+  };
+
+  // 2. Efeito para carregar os áudios uma única vez no início
+  useEffect(() => {
+    audioRef.current = new Audio('/relogio.mpeg');
+    audioRef.current.loop = true;
+
+    lastMinuteAudioRef.current = new Audio('/lastminute.mpeg');
+    lastMinuteAudioRef.current.loop = true;
+
+    successAudioRef.current = new Audio('/success.mpeg');
+    failAudioRef.current = new Audio('/fail.mpeg');
+
+    return () => {
+      // Garante que tudo pare se o componente sumir da tela
+      audioRef.current?.pause();
+      lastMinuteAudioRef.current?.pause();
+    };
+  }, []);
+
+  // 3. Gerenciamento do som de fundo (Relógio Normal vs Último Minuto)
+  useEffect(() => {
+    const normalClock = audioRef.current;
+    const lastMinuteClock = lastMinuteAudioRef.current;
+    
+    if (!normalClock || !lastMinuteClock) return;
+
+    const multiplier = getTimeSpeedMultiplier();
+
+    if (gameState === 'PLAYING') {
+      // Aplica a aceleração em ambos os áudios de cronômetro
+      normalClock.playbackRate = multiplier;
+      lastMinuteClock.playbackRate = multiplier;
+
+      if (timeRemaining <= 60) {
+        // Se entrou no último minuto, para o normal e toca o desesperador
+        if (!normalClock.paused) normalClock.pause();
+        
+        if (lastMinuteClock.paused) {
+          lastMinuteClock.play().catch(err => console.log(err));
+        }
+      } else {
+        // Tempo seguro: toca o normal e garante que o crítico esteja pausado
+        if (!lastMinuteClock.paused) lastMinuteClock.pause();
+        
+        if (normalClock.paused) {
+          normalClock.play().catch(err => console.log(err));
+        }
+      }
+    } else {
+      // Se não está jogando (Menu ou Game Over), reseta e para ambos
+      normalClock.pause();
+      normalClock.currentTime = 0;
+      lastMinuteClock.pause();
+      lastMinuteClock.currentTime = 0;
+    }
+  }, [gameState, strikes, timeRemaining]);
 
   useEffect(() => {
     let timer;
@@ -425,6 +493,12 @@ export default function App() {
     const calculatedFinalTime = 300 - timeRemaining;
     setFinalTime(calculatedFinalTime);
     setGameResult(result);
+
+    if (result === 'WIN') {
+      playSoundEffect(successAudioRef.current);
+    } else if (result === 'LOSE') {
+      playSoundEffect(failAudioRef.current);
+    }
 
     // Se o time vencer, salva o registro no ranking local
     if (result === 'WIN') {
