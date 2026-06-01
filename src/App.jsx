@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 // Link fictício do Google Drive para o manual unificado
-const MANUAL_DRIVE_URL = "https://drive.google.com/file/d/YOUR_MANUAL_ID/view";
+const MANUAL_DRIVE_URL = "https://drive.google.com/file/d/1vmM8drVeeuHE2zGCaAp846PlfByKj89J/view?usp=sharing";
 const QR_CODE_API = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(MANUAL_DRIVE_URL)}`;
 
 // ============================================================================
@@ -204,7 +204,7 @@ function Modulo10({ onSolved, onStrike }) {
   return (
     <div style={styles.moduleCard}>
       <div style={styles.moduleHeader}>SLOT DE INTEGRALIDADE [ATIVO]</div>
-      <p style={styles.moduleDesc}>Verificação de chaves públicas. Pressione o acionador exatamente 5 vezes:</p>
+      <p style={styles.moduleDesc}>Verificação de chaves públicas.</p>
       <div style={{ display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'center', margin: '15px 0' }}>
         <button style={{ ...styles.moduleBtn, backgroundColor: '#ff0055', width: '80px', height: '80px', borderRadius: '50%' }} onClick={() => setClicks(clicks + 1)}>PULSAR</button>
         <span style={{ fontSize: '24px', color: '#fff' }}>REG: {clicks}</span>
@@ -535,6 +535,7 @@ export default function App() {
           <div style={styles.centerScreen}>
             <h2>MATRIZ DE REGULAÇÃO LIBERADA (ANPD / COBIT / ITIL)</h2>
             <p style={{ color: '#ffd700', marginBottom: '20px' }}>O comitê precisa escanear o QR Code para ler as diretrizes cegas.</p>
+            <a href={MANUAL_DRIVE_URL} target="_blank" rel="noopener noreferrer" style={{ color: '#00ff66', marginBottom: '30px' }}>CLIQUE AQUI PARA ACESSAR O MANUAL OU ESCANEIE O QR CODE</a>
             <div style={styles.qrContainer}><img src={QR_CODE_API} alt="QR Code" style={{ display: 'block' }} /></div>
             <p style={styles.codeText}>Sistemas Armados em Operação: [3 SLOTS CRIPTOGRAFADOS CARREGADOS]</p>
             <button style={styles.retroButton} onClick={startBomb}>ENTRAR NO TERMINAL COBIÇADO</button>
