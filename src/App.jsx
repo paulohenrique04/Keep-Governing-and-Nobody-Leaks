@@ -4,9 +4,94 @@ import { useState, useEffect, useRef } from 'react';
 const MANUAL_DRIVE_URL = "https://drive.google.com/file/d/1vmM8drVeeuHE2zGCaAp846PlfByKj89J/view?usp=sharing";
 const QR_CODE_API = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(MANUAL_DRIVE_URL)}`;
 
+// Dicionário Educativo: COBIT & ITIL
+const EDUCATIONAL_FEEDBACK = {
+  1: { title: "Contenção de Incidentes", cobit: "DSS05 (Serviços de Segurança)", itil: "Gerenciamento de Incidentes", lesson: "Incidentes críticos exigem contenção física ou lógica (isolamento) antes de qualquer investigação ou correção profunda." },
+  2: { title: "Dilema de Transparência", cobit: "APO12 (Gestão de Riscos)", itil: "Central de Serviços (Service Desk)", lesson: "Ocultar falhas alivia o suporte temporariamente, mas o risco legal (LGPD) e de reputação exige transparência inegociável." },
+  3: { title: "Mapeamento Físico", cobit: "BAI09 (Gestão de Ativos)", itil: "Gerenciamento de Ativos de TI", lesson: "Não se desliga hardware às cegas. É vital cruzar seriais com o inventário para isolar o nó correto sem causar indisponibilidade global." },
+  4: { title: "Análise Forense", cobit: "MEA02 (Controle Interno)", itil: "Gerenciamento de Problemas", lesson: "Tratar o sintoma não resolve a brecha. É preciso identificar a causa raiz (ex: SQL Injection) para aplicar a mitigação definitiva." },
+  5: { title: "Expurgo de Conexões", cobit: "DSS06 (Controles de Processos)", itil: "Gerenciamento de Acessos", lesson: "Conexões devem ser constantemente validadas. Túneis não agendados ou IPs anômalos em faixas públicas devem ser expurgados." },
+  6: { title: "Balanceamento de Carga", cobit: "APO08 (Gestão de Capacidade)", itil: "Gerenciamento de Capacidade", lesson: "A infraestrutura tem limites físicos. Aumentar a capacidade de rede exige planejamento arquitetônico prévio para evitar gargalos sistêmicos." },
+  7: { title: "Recuperação de Desastre", cobit: "DSS04 (Continuidade de Negócios)", itil: "Continuidade de Serviços de TI", lesson: "Em um desastre, a ordem importa. A retaguarda e as barreiras (Firewall) devem subir antes do roteamento de saída da rede." },
+  8: { title: "Homologação de Mudanças", cobit: "MEA03 (Conformidade Externa)", itil: "Gerenciamento de Mudanças", lesson: "Mudanças emergenciais em produção não podem ignorar a lei. O patch só é liberado se respeitar exigências criptográficas (LGPD)." },
+  9: { title: "Relatório de Diretoria", cobit: "MEA01 (Monitoramento de Desempenho)", itil: "Medição e Reporte", lesson: "Relatórios de crise devem focar no impacto real do negócio (custos, dados afetados), isolando métricas de vaidade." },
+  10: { title: "Segurança Irreversível", cobit: "EDM03 (Otimização de Riscos)", itil: "Gerenciamento de Segurança", lesson: "Ações sistêmicas irreversíveis ou chaves públicas exigem redundância e validação assíncrona para evitar falhas de ponto único." },
+  11: { title: "Privacidade e Sigilo", cobit: "APO11 (Gestão de Qualidade)", itil: "Gerenciamento de Conhecimento", lesson: "A classificação correta da informação (ex: Dados de saúde = Confidencial) dita as regras de criptografia e acesso aplicadas pelo sistema." },
+  12: { title: "Manutenção de SLA", cobit: "DSS01 (Gestão de Operações)", itil: "Gerenciamento de Nível de Serviço", lesson: "A infraestrutura física obedece a contratos estritos (SLA). Ignorar a temperatura ambiente degrada o hardware em cascata." },
+  13: { title: "Compliance na Nuvem", cobit: "APO10 (Gestão de Fornecedores)", itil: "Gerenciamento de Fornecedores", lesson: "A segurança corporativa depende dos parceiros. Usar nuvens públicas sem certificações (SOC2/ISO) transfere o risco para terceiros." },
+  14: { title: "Obsolescência Tecnológica", cobit: "BAI10 (Gestão de Configuração)", itil: "Gerenciamento de Configuração", lesson: "Softwares depreciados ou fora da janela de suporte longo (LTS) atuam como portas dos fundos permanentes para ataques." },
+  15: { title: "Engenharia Social", cobit: "BAI05 (Mudança Organizacional)", itil: "Conscientização e Talentos", lesson: "O elo mais fraco é o fator humano. Processos de emergência devem incluir protocolos rigorosos contra táticas de Phishing." },
+  16: { title: "Contenção de Orçamento", cobit: "APO06 (Gestão de Custos)", itil: "Gerenciamento Financeiro de TI", lesson: "O orçamento de mitigação não é infinito. A governança impõe limites (CAPEX) para que a solution técnica não gere insolvência financeira." },
+  17: { title: "Validação Isenta", cobit: "MEA02 (Monitorar Sistema Interno)", itil: "Validação, Teste e Auditoria", lesson: "Para atestar transparência perante órgãos reguladores (como a ANPD), laudos críticos exigem emissão por auditorias externas e isentas." },
+  18: { title: "Matriz de Privilégios", cobit: "DSS05 (Controle de Acessos)", itil: "Gerenciamento de Acessos", lesson: "Aplicação vital do 'Princípio do Menor Privilégio'. Contas de treinamento com acessos administrativos são o maior risco interno possível." }
+};
+
 // ============================================================================
 // BANCO DE COMPONENTES DOS 18 MÓDULOS (COMPLEMENTE ÀS CEGAS PARA O OPERADOR)
 // ============================================================================
+
+const FeedbackPopup = ({ isVictory, playedModuleIds, onClose }) => {
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+      backgroundColor: 'rgba(0, 0, 0, 0.9)', display: 'flex',
+      justifyContent: 'center', alignItems: 'center', zIndex: 1000
+    }}>
+      <div style={{
+        backgroundColor: '#111', border: `2px solid ${isVictory ? '#00ff66' : '#ff0055'}`,
+        padding: '20px', maxWidth: '800px', width: '90%', maxHeight: '90vh', overflowY: 'auto',
+        color: '#ccc', fontFamily: 'monospace'
+      }}>
+        
+        <h2 style={{ color: isVictory ? '#00ff66' : '#ff0055', textAlign: 'center', borderBottom: '1px dashed', paddingBottom: '10px' }}>
+          {isVictory ? '[ SUCESSO: RELATÓRIO DE CONFORMIDADE APROVADO ]' : '[ FALHA: INFRAÇÃO DE GOVERNANÇA DETECTADA ]'}
+        </h2>
+        
+        <p style={{ textAlign: 'center', marginBottom: '20px' }}>
+          O caos técnico passou. Veja como a <strong>Governança (COBIT)</strong> e os <strong>Serviços (ITIL)</strong> foram aplicados nos desafios que você acabou de enfrentar:
+        </p>
+
+        {playedModuleIds.map((modId) => {
+          const feedback = EDUCATIONAL_FEEDBACK[modId];
+          if (!feedback) return null;
+
+          return (
+            <div key={modId} style={{
+              backgroundColor: '#000', borderLeft: `4px solid ${isVictory ? '#00ff66' : '#ffd700'}`,
+              padding: '15px', marginBottom: '15px'
+            }}>
+              <h3 style={{ margin: '0 0 10px 0', color: '#fff' }}>{feedback.title}</h3>
+              <div style={{ display: 'flex', gap: '15px', marginBottom: '10px', fontSize: '12px' }}>
+                <span style={{ backgroundColor: '#222', padding: '4px 8px', color: '#ffd700' }}>
+                  <strong>COBIT:</strong> {feedback.cobit}
+                </span>
+                <span style={{ backgroundColor: '#222', padding: '4px 8px', color: '#00ffff' }}>
+                  <strong>ITIL:</strong> {feedback.itil}
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', lineHeight: '1.4' }}>
+                <strong style={{ color: '#aaa' }}>Aprendizado: </strong> {feedback.lesson}
+              </p>
+            </div>
+          );
+        })}
+
+        <div style={{ textAlign: 'center', marginTop: '25px' }}>
+          <button 
+            onClick={onClose}
+            style={{
+              backgroundColor: '#333', color: '#fff', border: `1px solid ${isVictory ? '#00ff66' : '#ff0055'}`,
+              padding: '10px 20px', cursor: 'pointer', fontFamily: 'monospace', fontWeight: 'bold'
+            }}
+          >
+            FECHAR RELATÓRIO E FINALIZAR
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
+};
 
 // Módulo 1: Alarme Primário (DSS05)
 function Modulo01({ onSolved, onStrike }) {
@@ -375,6 +460,14 @@ export default function App() {
   const failAudioRef = useRef(null);
   const startScreeanAudioRef = useRef(null);
 
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isVictory, setIsVictory] = useState(false);
+
+   const handleGameOver = (won) => {
+    setIsVictory(won);
+    setShowFeedback(true);
+  };
+
   const getTimeSpeedMultiplier = () => {
     if (strikes === 1) return 1.35;
     if (strikes === 2) return 1.75;
@@ -400,7 +493,6 @@ export default function App() {
     failAudioRef.current = new Audio('/fail.mpeg');
 
     startScreeanAudioRef.current = new Audio('/inicial.mpeg');
-    // startScreeanAudioRef.current.loop = true;
 
     return () => {
       // Garante que tudo pare se o componente sumir da tela
@@ -420,14 +512,14 @@ export default function App() {
 
     const multiplier = getTimeSpeedMultiplier();
 
-    if (gameState === 'START' || gameState === 'TEAM_INPUT') {
+    if (gameState === 'START' || gameState === 'BRIEFING' || gameState === 'TEAM_INPUT') {
       normalClock.pause();
       normalClock.currentTime = 0;
       lastMinuteClock.pause();
       lastMinuteClock.currentTime = 0;
 
       // Toca o som da tela inicial
-      if (startAudio.paused) {
+      if (startAudio && startAudio.paused) {
         startAudio.play().catch(err => {
           console.log("Autoplay bloqueado. O som começará após o primeiro clique do usuário.", err);
         });
@@ -513,6 +605,9 @@ export default function App() {
     const calculatedFinalTime = 300 - timeRemaining;
     setFinalTime(calculatedFinalTime);
     setGameResult(result);
+
+    // Dispara a exibição dos aprendizados no popup educacional
+    handleGameOver(result === 'WIN');
 
     if (result === 'WIN') {
       playSoundEffect(successAudioRef.current);
@@ -610,7 +705,53 @@ export default function App() {
           <div style={styles.centerScreen}>
             <h1 style={styles.glitchTitle}>PROJECT: KEEP GOVERNING AND NOBODY LEAKS</h1>
             <p style={styles.subtitle}>COBIT / ITIL Sandbox Blind Server Assessment</p>
-            <button style={styles.retroButton} onClick={() => setGameState('TEAM_INPUT')}>CONFIGURAR SESSÃO DE CRISE</button>
+            <button style={styles.retroButton} onClick={() => setGameState('BRIEFING')}>CONFIGURAR SESSÃO DE CRISE</button>
+          </div>
+        )}
+
+        {gameState === 'BRIEFING' && (
+          <div style={{ ...styles.centerScreen, alignItems: 'stretch' }}>
+            <h2 style={{ color: '#ff0055', textShadow: '2px 2px #333', marginBottom: '20px' }}>
+              [ ALERTA VERMELHO: INCIDENTE GLOBAL DETECTADO ]
+            </h2>
+            
+            <div style={{ 
+              backgroundColor: '#111', 
+              padding: '20px', 
+              borderLeft: '4px solid #ff0055', 
+              textAlign: 'left', 
+              marginBottom: '30px', 
+              fontFamily: 'monospace', 
+              fontSize: '14px', 
+              lineHeight: '1.6' 
+            }}>
+              <p><strong style={{ color: '#ffd700' }}>ALVO:</strong> Servidores de Autenticação - Epic Games</p>
+              <p><strong style={{ color: '#ffd700' }}>STATUS:</strong> Exfiltração activa. 200 milhões de contas expostas, incluindo dados de menores de idade.</p>
+              <p><strong style={{ color: '#ffd700' }}>RISCO:</strong> Sanções máximas da LGPD, colapso das ações e perda de confiança pública.</p>
+              
+              <hr style={{ borderColor: '#333', margin: '20px 0' }} />
+              
+              <h3 style={{ color: '#00ff66', margin: '0 0 10px 0' }}>DIRETRIZES DA MISSÃO (PROTOCOLO CEGO):</h3>
+              <ul style={{ color: '#ccc', margin: 0, paddingLeft: '20px' }}>
+                <li style={{ marginBottom: '10px' }}>
+                  <strong style={{ color: '#00ffff' }}>O OPERADOR (MÃOS / ITIL):</strong> Controla este terminal. Executa as ações técnicas para apagar o incêndio, mas não sabe as regras de negócio.
+                </li>
+                <li style={{ marginBottom: '10px' }}>
+                  <strong style={{ color: '#ff0055' }}>O COMITÊ (CÉREBRO / COBIT):</strong> Possui o Manual de Governança. Sabe as regras da LGPD e restrições orçamentárias, mas não pode olhar para este ecrã.
+                </li>
+              </ul>
+              
+              <p style={{ color: '#ff0055', marginTop: '20px', fontWeight: 'bold', textAlign: 'center' }}>
+                A COMUNICAÇÃO É A ÚNICA ARMA. 3 VIOLAÇÕES DE GOVERNANÇA = GAME OVER.
+              </p>
+            </div>
+
+            <button 
+              style={{ ...styles.retroButton, alignSelf: 'center' }} 
+              onClick={() => setGameState('TEAM_INPUT')}
+            >
+              ACEITAR MISSÃO E CONFIGURAR EQUIPA
+            </button>
           </div>
         )}
 
@@ -653,6 +794,17 @@ export default function App() {
                 <div style={styles.hardwareHeader}>METADADOS DO INTEGRALIZADOR</div>
                 <p><strong>SERIAL ID:</strong> <span style={{color: '#ffd700'}}>{serialNumber}</span></p>
                 <p><strong>CÉLULAS BACKUP:</strong> <span style={{color: '#ffd700'}}>{batteriesCount} UND</span></p>
+              </div>
+
+              <div style={styles.hardwarePanel}>
+                <div style={styles.hardwareHeader}>SISTEMAS EXECUTADOS</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', color: '#ccc' }}>
+                  {activeModuleIds.map(modId => (
+                    <div key={modId} style={{ fontSize: '11px', color: solvedModules.includes(modId) ? '#00ff66' : '#ffd700' }}>
+                      {solvedModules.includes(modId) ? '✓' : '⚠️'} {EDUCATIONAL_FEEDBACK[modId]?.title}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div style={styles.metaData}>
@@ -705,6 +857,16 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {showFeedback && (
+        <FeedbackPopup 
+          isVictory={isVictory} 
+          playedModuleIds={activeModuleIds} 
+          onClose={() => {
+             setShowFeedback(false);
+          }} 
+        />
+      )}
     </div>
   );
 }
